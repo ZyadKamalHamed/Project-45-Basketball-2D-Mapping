@@ -200,6 +200,6 @@ if __name__ == "__main__":
     # Initialize and run tracker
     tracker = ObjectTracking(
         model="yolo26n.pt",
-        source="boston-celtics-new-york-knicks-game-1-q1-01.54-01.48.mp4"
+        source="Data/boston-celtics-new-york-knicks-game-1-q1-01.54-01.48.mp4"
     )
     tracker.run()
