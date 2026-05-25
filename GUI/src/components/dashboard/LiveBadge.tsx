@@ -12,8 +12,8 @@ export function LiveBadge({ size = 'sm', variant = 'default' }: Props) {
     <span
       className={`inline-flex items-center gap-1.5 rounded-full font-semibold uppercase tracking-widest ${text} ${pad} ${
         isOverlay
-          ? 'bg-black/55 text-white backdrop-blur-sm'
-          : 'bg-[var(--accent-soft)] text-[var(--miss)]'
+          ? 'bg-black/55 text-white backdrop-blur-md border border-white/10'
+          : 'bg-[rgba(255,77,77,0.12)] text-[var(--live)] border border-[rgba(255,77,77,0.28)] backdrop-blur-md'
       }`}
     >
       <span className="relative inline-flex h-1.5 w-1.5">

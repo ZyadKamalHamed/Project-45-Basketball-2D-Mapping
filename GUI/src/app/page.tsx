@@ -1,131 +1,51 @@
 'use client'
 
-import { useMemo, useState, useCallback, useEffect } from 'react'
-import Image from 'next/image'
-import { Upload, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FilterProvider } from '@/context/FilterContext'
+import { CourtMap } from '@/components/dashboard/CourtMap'
 import { FilterControls } from '@/components/dashboard/FilterControls'
 import { StatsCardsRow } from '@/components/dashboard/StatsCardsRow'
-import { PlayerStatsTable } from '@/components/dashboard/PlayerStatsTable'
 import { VideoFeed } from '@/components/dashboard/VideoFeed'
 import { LiveBadge } from '@/components/dashboard/LiveBadge'
-import { DropZone } from '@/components/upload/DropZone'
-import { ProcessingStatus } from '@/components/upload/ProcessingStatus'
 import { MOCK_ANALYSIS } from '@/lib/mock-data'
-import { computeTeamStats, computePlayerStats } from '@/lib/stats-utils'
-
-type Stage = 'idle' | 'uploading' | 'processing'
+import { computeTeamStats } from '@/lib/stats-utils'
+import { pollResult } from '@/lib/analysis-client'
+import type { VideoAnalysis } from '@/types/basketball'
 
 export default function HomePage() {
-  const { shots, playerTracks, teams, gameLabel } = MOCK_ANALYSIS
+  const { analysis, status, message, setAnalysisId } = useAnalysis()
+  const { shots, playerTracks, teams, gameLabel } = analysis
 
   const teamStats = useMemo(() => computeTeamStats(shots, teams), [shots, teams])
-  const playerStats = useMemo(
-    () => computePlayerStats(shots, playerTracks, teams),
-    [shots, playerTracks, teams],
-  )
-
-  const [uploadOpen, setUploadOpen] = useState(false)
 
   return (
     <FilterProvider>
       <div className="min-h-screen">
-        {/* Header */}
-        <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-white/75 backdrop-blur-xl">
-          <div className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-3.5">
-            <div className="flex items-center gap-3">
-              <Logo />
-              <span
-                className="text-[15px] font-semibold tracking-tight text-[var(--text)]"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                CourtVision
-              </span>
-              <span className="hidden text-[var(--border-strong)] sm:inline">·</span>
-              <span className="hidden text-sm text-[var(--text-muted)] sm:inline">{gameLabel}</span>
-            </div>
+        <DashboardHeader gameLabel={gameLabel} status={status} message={message} />
 
-            <div className="flex items-center gap-3">
-              <LiveBadge />
-              <button
-                onClick={() => setUploadOpen(true)}
-                className="flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface)] hover:text-[var(--text)]"
-              >
-                <Upload size={13} />
-                Upload Video
-              </button>
-            </div>
+        <main className="mx-auto w-full max-w-[1280px] px-6 pb-12 pt-6">
+          {/* Top row: video + shot map */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
+            <section className="min-w-0">
+              <VideoFeed gameLabel={gameLabel} onAnalysisStarted={setAnalysisId} />
+            </section>
+
+            <section className="min-w-0">
+              <div className="glass-panel glass-mount h-full p-5">
+                <div className="mb-4">
+                  <FilterControls teams={teams} />
+                </div>
+                <CourtMap shots={shots} playerTracks={playerTracks} teams={teams} />
+              </div>
+            </section>
           </div>
-        </header>
 
-        {/* Main content */}
-        <main className="mx-auto max-w-[1200px] px-6 py-10 space-y-12">
-          {/* Video feed */}
-          <section>
-            <SectionHeader
-              eyebrow="Live Feed"
-              title="Game broadcast"
-              subtitle={gameLabel}
-            />
-            <VideoFeed gameLabel={gameLabel} />
-          </section>
-
-          {/* 2D Court */}
-          <section>
-            <SectionHeader
-              eyebrow="Court Tracking"
-              title="Real-time shot chart"
-              subtitle="Each shot logged by the model appears here as it happens"
-            />
-            <div className="overflow-hidden rounded-xl border border-white/60 bg-white/75 backdrop-blur-md p-4 shadow-[0_1px_2px_rgba(11,18,32,0.04)]">
-              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg">
-                <Image
-                  src="/court.png"
-                  alt="2D court with live shot markers"
-                  fill
-                  priority
-                  sizes="(max-width: 1200px) 100vw, 1152px"
-                  className="object-contain"
-                />
-              </div>
-              <div className="mt-4 flex items-center gap-5 text-xs text-[var(--text-muted)]">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[var(--made)]" />
-                  Boston Celtics
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#2563eb]" />
-                  New York Nicks
-                </span>
-                <span className="ml-auto tabular-nums text-[var(--text-soft)]">
-                  Live court — updates as the game progresses
-                </span>
-              </div>
-            </div>
-          </section>
-
-          {/* Team stats */}
-          <section>
-            <SectionHeader
-              eyebrow="Team Statistics"
-              title="Side by side"
-              subtitle="Overall shooting performance"
-            />
-            <StatsCardsRow teamStats={teamStats} />
-          </section>
-
-          {/* Player stats */}
-          <section>
-            <SectionHeader
-              eyebrow="Player Statistics"
-              title="Individual breakdown"
-              subtitle="Filter the chart and table by team, player or shot type"
-            />
-            <div className="mb-3 rounded-xl border border-white/60 bg-white/75 backdrop-blur-md p-3 shadow-[0_1px_2px_rgba(11,18,32,0.04)]">
-              <FilterControls teams={teams} playerTracks={playerTracks} />
-            </div>
-            <PlayerStatsTable playerStats={playerStats} />
-          </section>
+          {/* Team stats row */}
+          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+            {teamStats.map(stats => (
+              <StatsCardsRow.Card key={stats.teamId} stats={stats} />
+            ))}
+          </div>
         </main>
 
         <footer className="border-t border-[var(--border)] px-6 py-5 text-center">
@@ -133,20 +53,79 @@ export default function HomePage() {
             CourtVision · Live tracking analytics for professional basketball
           </p>
         </footer>
-
-        {uploadOpen && <UploadModal onClose={() => setUploadOpen(false)} />}
       </div>
     </FilterProvider>
+  )
+}
+
+function DashboardHeader({
+  gameLabel,
+  status,
+  message,
+}: {
+  gameLabel: string
+  status: AnalysisStatus
+  message: string | null
+}) {
+  return (
+    <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[rgba(6,8,15,0.55)] backdrop-blur-xl">
+      <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-6 py-3.5">
+        <div className="flex min-w-0 items-center gap-3">
+          <Logo />
+          <span
+            className="text-[15px] font-semibold tracking-tight text-[var(--text)]"
+            style={{ fontFamily: 'var(--font-display)' }}
+          >
+            CourtVision
+          </span>
+          <span className="hidden text-[var(--text-soft)] sm:inline">·</span>
+          <span className="hidden truncate text-sm text-[var(--text-muted)] sm:inline">
+            {gameLabel}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {status === 'processing' && (
+            <span className="hidden items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)] backdrop-blur-md md:inline-flex">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--accent)]" />
+              Analysing
+            </span>
+          )}
+          {status === 'error' && message && (
+            <span
+              className="hidden max-w-[300px] truncate rounded-full border border-[rgba(255,107,107,0.35)] bg-[rgba(255,107,107,0.10)] px-3 py-1 text-[11px] font-medium text-[var(--miss)] backdrop-blur-md md:inline-flex"
+              title={message}
+            >
+              {message}
+            </span>
+          )}
+          <LiveBadge />
+        </div>
+      </div>
+    </header>
   )
 }
 
 function Logo() {
   return (
     <div
-      className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--accent)] text-white"
+      className="flex h-7 w-7 items-center justify-center rounded-md text-white"
+      style={{
+        background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+        boxShadow: '0 0 16px rgba(108,140,255,0.45)',
+      }}
       aria-hidden
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
         <circle cx="12" cy="12" r="9" />
         <path d="M3 12h18" />
         <path d="M12 3a13 13 0 0 1 0 18" />
@@ -156,114 +135,71 @@ function Logo() {
   )
 }
 
-function SectionHeader({
-  eyebrow,
-  title,
-  subtitle,
-}: {
-  eyebrow: string
-  title: string
-  subtitle?: string
-}) {
-  return (
-    <div className="mb-4 flex items-baseline justify-between gap-4">
-      <div>
-        <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
-          {eyebrow}
-        </div>
-        <h2
-          className="mt-1.5 text-[20px] font-semibold tracking-tight text-[var(--text)]"
-          style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.01em' }}
-        >
-          {title}
-        </h2>
-      </div>
-      {subtitle && (
-        <p className="hidden max-w-md text-right text-xs text-[var(--text-soft)] md:block">
-          {subtitle}
-        </p>
-      )}
-    </div>
-  )
+type AnalysisStatus = 'idle' | 'processing' | 'ready' | 'error'
+
+interface UseAnalysisReturn {
+  analysis: VideoAnalysis
+  status: AnalysisStatus
+  message: string | null
+  setAnalysisId: (id: string | null) => void
 }
 
-function UploadModal({ onClose }: { onClose: () => void }) {
-  const [stage, setStage] = useState<Stage>('idle')
-  const [fileName, setFileName] = useState('')
-  const [uploadProgress, setUploadProgress] = useState(0)
+function useAnalysis(): UseAnalysisReturn {
+  const [analysisId, setAnalysisId] = useState<string | null>(null)
+  const [analysis, setAnalysis] = useState<VideoAnalysis>(MOCK_ANALYSIS)
+  const [status, setStatus] = useState<AnalysisStatus>('idle')
+  const [message, setMessage] = useState<string | null>(null)
 
-  const handleFileAccepted = useCallback((file: File) => {
-    setFileName(file.name)
-    setStage('uploading')
-    setUploadProgress(0)
+  const handleSetAnalysisId = useCallback((id: string | null) => {
+    setAnalysisId(id)
+    if (id === null) {
+      setStatus('idle')
+      setMessage(null)
+      setAnalysis(MOCK_ANALYSIS)
+    } else {
+      setStatus('processing')
+      setMessage(null)
+    }
   }, [])
 
   useEffect(() => {
-    if (stage !== 'uploading') return
+    if (!analysisId) return
+    let cancelled = false
 
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setStage('processing')
-          return 100
+    async function run(id: string) {
+      try {
+        for await (const result of pollResult(id, { intervalMs: 2000 })) {
+          if (cancelled) return
+          if (result.status === 'ready' && result.analysis) {
+            // Only swap to live data if we actually got teams/players — empty results would
+            // leave the dashboard looking broken, so we keep the mock context around.
+            const hasContent =
+              Object.keys(result.analysis.teams ?? {}).length > 0 ||
+              (result.analysis.playerTracks ?? []).length > 0
+            if (hasContent) {
+              setAnalysis(result.analysis)
+            }
+            setStatus('ready')
+            return
+          }
+          if (result.status === 'error') {
+            setStatus('error')
+            setMessage(result.message ?? 'Analysis failed')
+            return
+          }
         }
-        const increment = prev < 70 ? 8 : prev < 90 ? 3 : 1
-        return Math.min(prev + increment, 100)
-      })
-    }, 80)
-
-    return () => clearInterval(interval)
-  }, [stage])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      } catch (err) {
+        if (cancelled) return
+        setStatus('error')
+        setMessage(err instanceof Error ? err.message : 'Polling failed')
+      }
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1220]/40 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg rounded-2xl border border-[var(--border)] bg-white p-6 shadow-[0_24px_60px_rgba(11,18,32,0.18)]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-5 flex items-start justify-between">
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
-              Upload
-            </div>
-            <h3
-              className="mt-1 text-lg font-semibold text-[var(--text)]"
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              Add game footage
-            </h3>
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-md p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
-            aria-label="Close"
-          >
-            <X size={16} />
-          </button>
-        </div>
+    run(analysisId)
+    return () => {
+      cancelled = true
+    }
+  }, [analysisId])
 
-        {stage === 'idle' && <DropZone onFileAccepted={handleFileAccepted} />}
-
-        {(stage === 'uploading' || stage === 'processing') && (
-          <ProcessingStatus
-            fileName={fileName}
-            uploadProgress={uploadProgress}
-            onComplete={onClose}
-          />
-        )}
-      </div>
-    </div>
-  )
+  return { analysis, status, message, setAnalysisId: handleSetAnalysisId }
 }

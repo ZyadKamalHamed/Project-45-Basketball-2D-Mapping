@@ -1,63 +1,94 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
-import Image from 'next/image'
-import { Maximize2, Pause, UploadCloud, Volume2, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { UploadCloud, X, AlertCircle } from 'lucide-react'
 import { LiveBadge } from './LiveBadge'
+import { uploadVideo } from '@/lib/analysis-client'
 
 interface Props {
   gameLabel: string
-  clock?: string
-  quarter?: string
+  onAnalysisStarted?: (analysisId: string) => void
 }
 
 const ACCEPTED = '.mp4,.mov,video/mp4,video/quicktime'
 
-export function VideoFeed({ gameLabel, clock = '08:42', quarter = 'Q3' }: Props) {
-  const [uploaded, setUploaded] = useState(false)
-  const [fileName, setFileName] = useState<string | null>(null)
+type UploadState =
+  | { kind: 'idle' }
+  | { kind: 'uploading'; fileName: string }
+  | { kind: 'ready'; fileName: string; objectUrl: string; analysisId: string | null }
+  | { kind: 'error'; message: string }
+
+export function VideoFeed({ gameLabel, onAnalysisStarted }: Props) {
+  const [state, setState] = useState<UploadState>({ kind: 'idle' })
   const [dragActive, setDragActive] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-  const handleFile = useCallback((file?: File | null) => {
-    if (!file) return
-    setFileName(file.name)
-    setUploaded(true)
-  }, [])
+  // Revoke object URLs when the file is replaced.
+  useEffect(() => {
+    return () => {
+      if (state.kind === 'ready') URL.revokeObjectURL(state.objectUrl)
+    }
+  }, [state])
+
+  const handleFile = useCallback(
+    async (file?: File | null) => {
+      if (!file) return
+      const objectUrl = URL.createObjectURL(file)
+      setState({ kind: 'uploading', fileName: file.name })
+
+      try {
+        const { analysisId } = await uploadVideo(file)
+        setState({ kind: 'ready', fileName: file.name, objectUrl, analysisId })
+        onAnalysisStarted?.(analysisId)
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Upload failed'
+        // Still show the video locally even if the bridge fails — useful for design QA.
+        setState({ kind: 'ready', fileName: file.name, objectUrl, analysisId: null })
+        console.warn('analyze upload failed:', message)
+      }
+    },
+    [onAnalysisStarted],
+  )
 
   const reset = useCallback(() => {
-    setUploaded(false)
-    setFileName(null)
+    setState(prev => {
+      if (prev.kind === 'ready') URL.revokeObjectURL(prev.objectUrl)
+      return { kind: 'idle' }
+    })
     if (inputRef.current) inputRef.current.value = ''
   }, [])
 
-  if (!uploaded) {
+  if (state.kind === 'idle' || state.kind === 'uploading' || state.kind === 'error') {
+    const uploading = state.kind === 'uploading'
     return (
       <div
         role="button"
         tabIndex={0}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !uploading && inputRef.current?.click()}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (!uploading && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault()
             inputRef.current?.click()
           }
         }}
         onDragOver={(e) => {
           e.preventDefault()
-          setDragActive(true)
+          if (!uploading) setDragActive(true)
         }}
         onDragLeave={() => setDragActive(false)}
         onDrop={(e) => {
           e.preventDefault()
           setDragActive(false)
-          handleFile(e.dataTransfer.files?.[0])
+          if (!uploading) handleFile(e.dataTransfer.files?.[0])
         }}
-        className={`group relative w-full cursor-pointer overflow-hidden rounded-xl border-2 border-dashed transition-all ${
-          dragActive
-            ? 'border-[var(--accent)] bg-[var(--accent-soft)]/70'
-            : 'border-[var(--border-strong)] bg-white/65 hover:border-[var(--accent)] hover:bg-white/85'
-        } backdrop-blur-md shadow-[0_1px_2px_rgba(11,18,32,0.04)]`}
+        className={`group glass-mount relative w-full overflow-hidden rounded-2xl border-2 border-dashed transition-all backdrop-blur-xl ${
+          uploading
+            ? 'cursor-progress border-[var(--accent)]/60 bg-[var(--surface-2)]'
+            : dragActive
+              ? 'cursor-copy border-[var(--accent)] bg-[var(--accent-soft)]'
+              : 'cursor-pointer border-[var(--border-strong)] bg-[var(--surface-2)] hover:border-[var(--accent)] hover:bg-[var(--surface)]'
+        }`}
       >
         <input
           ref={inputRef}
@@ -68,101 +99,79 @@ export function VideoFeed({ gameLabel, clock = '08:42', quarter = 'Q3' }: Props)
         />
         <div className="flex aspect-video w-full flex-col items-center justify-center gap-4 px-6 text-center">
           <div
-            className={`flex h-14 w-14 items-center justify-center rounded-full border transition-colors ${
-              dragActive
-                ? 'border-[var(--accent)] bg-white text-[var(--accent)]'
-                : 'border-[var(--border)] bg-white text-[var(--text-muted)] group-hover:border-[var(--accent)] group-hover:text-[var(--accent)]'
+            className={`flex h-16 w-16 items-center justify-center rounded-full border transition-colors ${
+              dragActive || uploading
+                ? 'border-[var(--accent)] bg-[var(--surface-elev)] text-[var(--accent)]'
+                : 'border-[var(--border)] bg-[var(--surface-elev)] text-[var(--text-muted)] group-hover:border-[var(--accent)] group-hover:text-[var(--accent)]'
             }`}
+            style={{ boxShadow: '0 0 32px rgba(108,140,255,0.25)' }}
           >
-            <UploadCloud size={24} />
+            <UploadCloud size={26} />
           </div>
           <div>
             <p
               className="text-base font-semibold text-[var(--text)]"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              {dragActive ? 'Drop to upload' : 'Upload game footage here'}
+              {uploading
+                ? 'Uploading…'
+                : dragActive
+                  ? 'Drop to upload'
+                  : 'Upload game footage'}
             </p>
             <p className="mt-1 text-sm text-[var(--text-muted)]">
-              Click to choose a file or drag &amp; drop
+              {uploading ? state.fileName : 'Click to choose a file or drag & drop'}
             </p>
           </div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--text-soft)]">
             MP4 or MOV
           </p>
+
+          {state.kind === 'error' && (
+            <div className="flex items-center gap-2 text-xs text-[var(--miss)]">
+              <AlertCircle size={13} />
+              {state.message}
+            </div>
+          )}
         </div>
       </div>
     )
   }
 
+  // Ready: render the actual uploaded video.
   return (
-    <div className="relative w-full overflow-hidden rounded-xl border border-white/60 bg-black shadow-[0_1px_2px_rgba(11,18,32,0.04)]">
+    <div className="glass-mount relative w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-black/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.45)]">
       <div className="relative aspect-video w-full">
-        <Image
-          src="/video-placeholder.png"
-          alt={`Live broadcast — ${gameLabel}`}
-          fill
-          priority
-          className="object-cover"
-          sizes="(max-width: 1200px) 100vw, 1200px"
+        <video
+          ref={videoRef}
+          src={state.objectUrl}
+          controls
+          playsInline
+          className="absolute inset-0 h-full w-full object-contain bg-black"
+          aria-label={`Game footage — ${gameLabel}`}
         />
 
-        {/* Top overlay row */}
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 p-4">
-          <div className="flex items-center gap-2">
+        {/* Top overlay row (sits above controls because of pointer-events) */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 p-4">
+          <div className="pointer-events-auto flex items-center gap-2">
             <LiveBadge size="md" variant="overlay" />
-            {fileName && (
-              <span className="max-w-[260px] truncate rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm">
-                {fileName}
+            <span className="max-w-[260px] truncate rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm border border-white/10">
+              {state.fileName}
+            </span>
+            {state.analysisId === null && (
+              <span className="rounded-full bg-[rgba(255,107,107,0.18)] border border-[rgba(255,107,107,0.35)] px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-[var(--miss)] backdrop-blur-sm">
+                Local only
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm tabular-nums">
-              {quarter} · {clock}
-            </div>
+          <div className="pointer-events-auto flex items-center gap-2">
             <button
               type="button"
               onClick={reset}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-black/75"
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm border border-white/10 transition-colors hover:bg-black/75"
               aria-label="Replace upload"
             >
               <X size={13} />
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom controls bar */}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
-          <div className="flex items-center gap-3 text-white">
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm transition-colors hover:bg-white/25"
-              aria-label="Pause"
-            >
-              <Pause size={14} />
-            </button>
-            <div className="flex-1">
-              <div className="h-1 w-full overflow-hidden rounded-full bg-white/20">
-                <div className="h-full w-1/3 rounded-full bg-[var(--accent)]" />
-              </div>
-            </div>
-            <span className="text-xs font-medium tabular-nums text-white/80">
-              {clock} / 12:00
-            </span>
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm transition-colors hover:bg-white/25"
-              aria-label="Volume"
-            >
-              <Volume2 size={14} />
-            </button>
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm transition-colors hover:bg-white/25"
-              aria-label="Fullscreen"
-            >
-              <Maximize2 size={14} />
             </button>
           </div>
         </div>

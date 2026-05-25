@@ -1,31 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #ffffff;
-  --surface: #f7f8fa;
-  --surface-2: #eef0f3;
-  --border: #e4e7eb;
-  --border-strong: #cbd1d8;
-  --text: #0b1220;
-  --text-muted: #5b6573;
-  --text-soft: #8a93a0;
-  --accent: #2563eb;
-  --accent-soft: #dbeafe;
-  --made: #16a34a;
-  --miss: #dc2626;
-  --live: #ef4444;
+  /* page */
+  --bg-0: #06080f;
+  --bg-1: #0c1124;
+  --aurora-a: #2a3e8a;
+  --aurora-b: #0f1838;
+  --aurora-c: #050813;
+
+  /* surfaces */
+  --surface: rgba(18, 24, 48, 0.55);
+  --surface-2: rgba(12, 18, 38, 0.45);
+  --surface-elev: rgba(28, 36, 70, 0.65);
+  --surface-solid: #0e1430;
+
+  /* hairlines */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* text */
+  --text: #eef1f8;
+  --text-muted: #a7b0c5;
+  --text-soft: #6c7693;
+
+  /* semantic */
+  --accent: #6c8cff;
+  --accent-2: #a06bff;
+  --accent-soft: rgba(108, 140, 255, 0.18);
+  --made: #22d65f;
+  --miss: #ff6b6b;
+  --live: #ff4d4d;
 }
 
 @theme inline {
-  --color-bg: var(--bg);
+  --color-bg: var(--bg-0);
+  --color-bg-1: var(--bg-1);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-elev: var(--surface-elev);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-text: var(--text);
   --color-text-muted: var(--text-muted);
   --color-text-soft: var(--text-soft);
   --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
   --color-accent-soft: var(--accent-soft);
   --color-made: var(--made);
   --color-miss: var(--miss);
@@ -35,7 +54,7 @@
 }
 
 html, body {
-  background-color: var(--bg);
+  background-color: var(--bg-0);
   color: var(--text);
 }
 
@@ -44,57 +63,40 @@ body {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   font-feature-settings: "ss01", "cv11";
   position: relative;
-  background-color: #eef2fb;
-  background-image:
-    /* Aurora cool wash, top-left */
-    radial-gradient(1300px 700px at 0% -10%, rgba(56, 110, 255, 0.28), transparent 60%),
-    /* Cyan halo, top-right */
-    radial-gradient(900px 600px at 105% -5%, rgba(34, 211, 238, 0.22), transparent 65%),
-    /* Violet glow, mid-left */
-    radial-gradient(760px 540px at -8% 45%, rgba(129, 92, 255, 0.20), transparent 65%),
-    /* Magenta blush, mid-right */
-    radial-gradient(820px 600px at 110% 60%, rgba(236, 72, 153, 0.16), transparent 65%),
-    /* Warm amber underline near bottom */
-    radial-gradient(1100px 520px at 50% 110%, rgba(250, 204, 21, 0.15), transparent 60%);
-  background-attachment: fixed;
+  background-color: var(--bg-0);
+  min-height: 100vh;
 }
 
-/* Conic mesh sweep — adds the iridescent tech feel */
-body::after {
-  content: '';
-  position: fixed;
-  inset: -10%;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    conic-gradient(
-      from 200deg at 70% 30%,
-      rgba(99, 102, 241, 0.18),
-      rgba(34, 211, 238, 0.10),
-      rgba(168, 85, 247, 0.16),
-      rgba(236, 72, 153, 0.10),
-      rgba(99, 102, 241, 0.18)
-    );
-  filter: blur(110px) saturate(115%);
-  opacity: 0.55;
-}
-
-/* Fine grid texture overlay — the "schematic" tech texture */
+/* Aurora sweep — diagonal gradient + soft radial highlight, fixed to viewport */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-image:
-    linear-gradient(to right, rgba(11, 18, 32, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(11, 18, 32, 0.05) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse at 50% 35%, rgba(0, 0, 0, 0.55), transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse at 50% 35%, rgba(0, 0, 0, 0.55), transparent 75%);
+  background:
+    radial-gradient(900px 600px at 10% 0%, rgba(108, 140, 255, 0.28), transparent 65%),
+    radial-gradient(700px 520px at 95% 10%, rgba(160, 107, 255, 0.18), transparent 65%),
+    linear-gradient(135deg, var(--aurora-a) 0%, var(--aurora-b) 40%, var(--aurora-c) 100%);
+  opacity: 0.85;
 }
 
-/* Make sure interactive content sits above the atmospheric layers */
+/* Fine dot grid texture overlay — keeps the dark from feeling dead */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.06) 1px, transparent 0);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse at 50% 30%, rgba(0, 0, 0, 0.7), transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, rgba(0, 0, 0, 0.7), transparent 80%);
+  opacity: 0.6;
+}
+
+/* Push interactive content above atmospheric layers */
 body > * {
   position: relative;
   z-index: 1;
@@ -112,24 +114,24 @@ body > * {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-soft);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 /* Live pulse ring */
 @keyframes live-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
-  70%  { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(255, 77, 77, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
 }
 .live-dot {
   animation: live-pulse 1.6s ease-out infinite;
 }
 
-/* Shot drop-in (used when motion isn't desired/loaded) */
+/* Shot drop-in */
 @keyframes shot-pop {
   0%   { transform: scale(0); opacity: 0; }
   60%  { transform: scale(1.15); opacity: 1; }
@@ -139,4 +141,24 @@ body > * {
   transform-origin: center;
   transform-box: fill-box;
   animation: shot-pop 280ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+/* Card mount fade — used by glass panels on first paint */
+@keyframes glass-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.glass-mount {
+  animation: glass-fade-in 200ms ease-out backwards;
+}
+
+/* Shared glass panel utility — saves repeating the cocktail */
+.glass-panel {
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset,
+              0 8px 32px rgba(0, 0, 0, 0.35);
 }

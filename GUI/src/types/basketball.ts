@@ -62,6 +62,7 @@ export interface TeamStats {
   twoPointAttempts: number
   twoPointMakes: number
   twoPPercent: number
+  points: number
 }
 
 export interface PlayerStats {

@@ -12,10 +12,10 @@ interface Props {
   teams: Record<string, Team>
 }
 
-const LINE = '#0b1220'
-const COURT_BG = '#fafbfc'
-const PAINT_BG = '#eef0f3'
-const RIM = '#dc6b1a'
+const LINE = 'rgba(255, 255, 255, 0.35)'
+const COURT_BG = 'rgba(12, 18, 38, 0.45)'
+const PAINT_BG = 'rgba(108, 140, 255, 0.18)'
+const RIM = '#ffae5b'
 
 export function CourtMap({ shots, playerTracks, teams }: Props) {
   const filters = useFilters()

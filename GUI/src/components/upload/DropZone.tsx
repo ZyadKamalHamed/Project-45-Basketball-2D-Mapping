@@ -40,23 +40,22 @@ export function DropZone({ onFileAccepted }: Props) {
     <div className="w-full">
       <div
         {...getRootProps()}
-        className={`relative flex cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed px-8 py-14 text-center transition-all duration-200 ${
+        className={`relative flex cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-8 py-14 text-center transition-all duration-200 backdrop-blur-xl ${
           isDragActive
             ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
-            : 'border-[var(--border-strong)] bg-[var(--surface)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]/40'
+            : 'border-[var(--border-strong)] bg-[var(--surface-2)] hover:border-[var(--accent)] hover:bg-[var(--surface)]'
         }`}
       >
         <input {...getInputProps()} />
 
         <div
-          className={`rounded-full p-3.5 transition-colors ${
-            isDragActive ? 'bg-white' : 'bg-white border border-[var(--border)]'
-          }`}
+          className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-elev)] text-[var(--text-muted)]"
+          style={{ boxShadow: '0 0 24px rgba(108,140,255,0.18)' }}
         >
           {isDragActive ? (
             <FileVideo size={26} className="text-[var(--accent)]" />
           ) : (
-            <Upload size={26} className="text-[var(--text-muted)]" />
+            <Upload size={26} />
           )}
         </div>
 
@@ -75,7 +74,7 @@ export function DropZone({ onFileAccepted }: Props) {
       </div>
 
       {error && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg border border-[var(--miss)]/20 bg-[var(--miss)]/5 px-3 py-2 text-xs text-[var(--miss)]">
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-[var(--miss)]/30 bg-[rgba(255,107,107,0.10)] px-3 py-2 text-xs text-[var(--miss)]">
           <AlertCircle size={13} className="flex-shrink-0" />
           {error}
         </div>

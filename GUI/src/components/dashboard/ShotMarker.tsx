@@ -19,8 +19,8 @@ interface TooltipState {
   y: number
 }
 
-const MADE_COLOR = '#16a34a'
-const MISSED_COLOR = '#dc2626'
+const MADE_COLOR = '#22d65f'
+const MISSED_COLOR = '#ff6b6b'
 
 export function ShotMarker({ shot, svgX, svgY, player, teamColor, teamName, index = 0 }: Props) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
@@ -70,7 +70,7 @@ export function ShotMarker({ shot, svgX, svgY, player, teamColor, teamName, inde
           fontWeight={700}
           fontSize={made ? 15 : 16}
           className="shot-pop"
-          style={{ animationDelay: `${delay}ms`, paintOrder: 'stroke', stroke: '#ffffff', strokeWidth: 2.5 }}
+          style={{ animationDelay: `${delay}ms`, paintOrder: 'stroke', stroke: 'rgba(6, 8, 15, 0.85)', strokeWidth: 2.5 }}
         >
           {made ? 'O' : 'X'}
         </text>
@@ -122,7 +122,7 @@ function ShotTooltip({
         pointerEvents: 'none',
         width: 184,
       }}
-      className="rounded-xl border border-[var(--border)] bg-white/95 backdrop-blur p-3.5 text-xs shadow-[0_8px_24px_rgba(11,18,32,0.08)]"
+      className="rounded-xl border border-[var(--border-strong)] bg-[var(--surface-elev)] backdrop-blur-xl p-3.5 text-xs shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
     >
       <div className="mb-2 flex items-center gap-2">
         <span

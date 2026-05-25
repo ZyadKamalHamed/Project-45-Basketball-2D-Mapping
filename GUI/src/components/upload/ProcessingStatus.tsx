@@ -47,8 +47,8 @@ export function ProcessingStatus({ fileName, uploadProgress, onComplete }: Props
   return (
     <div className="w-full space-y-5">
       {/* File info */}
-      <div className="flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3">
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-[var(--accent-soft)]">
+      <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3.5 py-3 backdrop-blur-md">
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-[var(--accent-soft)] border border-[var(--accent)]/30">
           <span className="text-[10px] font-bold tracking-wider text-[var(--accent)]">MP4</span>
         </div>
         <div className="min-w-0 flex-1">
@@ -62,16 +62,20 @@ export function ProcessingStatus({ fileName, uploadProgress, onComplete }: Props
         </span>
       </div>
 
-      {/* Upload progress bar */}
+      {/* Upload progress bar with gradient */}
       <div>
         <div className="mb-1.5 flex justify-between text-[11px] uppercase tracking-widest text-[var(--text-soft)]">
           <span>Upload</span>
           <span className="tabular-nums">{uploadProgress}%</span>
         </div>
-        <div className="h-1 overflow-hidden rounded-full bg-[var(--surface-2)]">
+        <div className="h-1 overflow-hidden rounded-full bg-white/5">
           <div
-            className="h-full rounded-full bg-[var(--accent)] transition-all duration-200"
-            style={{ width: `${uploadProgress}%` }}
+            className="h-full rounded-full transition-all duration-200"
+            style={{
+              width: `${uploadProgress}%`,
+              background: 'linear-gradient(90deg, var(--accent), var(--accent-2))',
+              boxShadow: '0 0 10px rgba(108,140,255,0.4)',
+            }}
           />
         </div>
       </div>

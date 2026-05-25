@@ -14,3 +14,6 @@ export function StatsCardsRow({ teamStats }: Props) {
     </div>
   )
 }
+
+// Re-export the card so pages can lay it out directly without the row wrapper.
+StatsCardsRow.Card = TeamStatCard
