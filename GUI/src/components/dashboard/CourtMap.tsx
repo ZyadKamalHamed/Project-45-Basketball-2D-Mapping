@@ -61,6 +61,7 @@ export function CourtMap({
         currentTime={currentTime}
         totalTracks={playerTracks.length}
         teams={teams}
+        shots={filteredShots}
       />
     )
   }
@@ -121,6 +122,7 @@ function ModelCourtImage({
   currentTime,
   totalTracks,
   teams,
+  shots,
 }: {
   imageUrl: string
   court?: CourtMeta | null
@@ -128,6 +130,7 @@ function ModelCourtImage({
   currentTime: number
   totalTracks: number
   teams: Record<string, Team>
+  shots: Shot[]
 }) {
   const [loadError, setLoadError] = useState(false)
 
@@ -175,6 +178,32 @@ function ModelCourtImage({
           preserveAspectRatio="none"
           className="pointer-events-none absolute inset-0 h-full w-full"
         >
+          {/* Shot markers (O for made, X for missed) — render under the dots so live
+              player positions stay readable when they overlap a shot location. */}
+          {shots.map((shot) => {
+            const cx = shot.location.x * scale + padding
+            const cy = shot.location.y * scale + padding
+            const made = shot.result === 'made'
+            const color = made ? '#22d65f' : '#ff6b6b'
+            return (
+              <g key={`shot-${shot.id}`} style={{ pointerEvents: 'none' }}>
+                <text
+                  x={cx}
+                  y={cy}
+                  fontSize={32}
+                  fontFamily="var(--font-display)"
+                  fontWeight={700}
+                  fill={color}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  style={{ filter: `drop-shadow(0 0 4px ${color}80)` }}
+                >
+                  {made ? 'O' : 'X'}
+                </text>
+              </g>
+            )
+          })}
+
           {activeDots.map(dot => {
             const cx = dot.x * scale + padding
             const cy = dot.y * scale + padding
@@ -189,6 +218,11 @@ function ModelCourtImage({
         </svg>
       </div>
       <div className="mt-4 flex items-center gap-5 text-xs text-[var(--text-muted)]">
+        <LegendItem color="var(--made)" symbol="O" label="Made" />
+        <LegendItem color="var(--miss)" symbol="X" label="Missed" />
+        <span className="tabular-nums text-[var(--text-soft)]">
+          {shots.length} shot{shots.length !== 1 ? 's' : ''}
+        </span>
         <span className="tabular-nums text-[var(--text-soft)]">
           {totalTracks} track{totalTracks !== 1 ? 's' : ''} projected
         </span>
