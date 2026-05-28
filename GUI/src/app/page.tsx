@@ -6,7 +6,6 @@ import { CourtMap } from '@/components/dashboard/CourtMap'
 import { FilterControls } from '@/components/dashboard/FilterControls'
 import { StatsCardsRow } from '@/components/dashboard/StatsCardsRow'
 import { VideoFeed } from '@/components/dashboard/VideoFeed'
-import { LiveBadge } from '@/components/dashboard/LiveBadge'
 import { computeTeamStats } from '@/lib/stats-utils'
 import { pollResult } from '@/lib/analysis-client'
 import type { VideoAnalysis } from '@/types/basketball'
@@ -26,7 +25,9 @@ export default function HomePage() {
   const teamStats = useMemo(() => computeTeamStats(shots, teams), [shots, teams])
   const hasTeams = Object.keys(teams).length > 0
   const showCourt = status === 'ready' && (courtImageUrl !== null || playerTracks.length > 0)
-  const showStats = status === 'ready' && teamStats.some(t => t.totalShots > 0)
+  // Render the score cards as soon as the analyser identifies both teams, even if shots
+  // are still empty — they fill in once the shot-detection module wires in.
+  const showStats = status === 'ready' && hasTeams
 
   return (
     <FilterProvider>
@@ -165,7 +166,6 @@ function DashboardHeader({
               {message}
             </span>
           )}
-          <LiveBadge />
         </div>
       </div>
     </header>

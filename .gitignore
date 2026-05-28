@@ -7,4 +7,6 @@ Data/Basketball and net detection.v1i.yolo26/
 Data/basketball-court-detection-2.v1-1.yolov8/
 Data/basketball-player-detection-3.v1-1.yolo26/
 example + guidlines/
-example + guidelines/
+.claude/
+AGENTS.md
+CLAUDE.md

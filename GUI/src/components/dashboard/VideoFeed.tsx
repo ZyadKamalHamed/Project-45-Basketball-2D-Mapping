@@ -1,8 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { UploadCloud, X, AlertCircle } from 'lucide-react'
-import { LiveBadge } from './LiveBadge'
+import { UploadCloud, X, AlertCircle, FileWarning } from 'lucide-react'
 import { uploadVideo } from '@/lib/analysis-client'
 
 interface Props {
@@ -23,61 +22,55 @@ type UploadState =
 export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate }: Props) {
   const [state, setState] = useState<UploadState>({ kind: 'idle' })
   const [dragActive, setDragActive] = useState(false)
+  // Set to a non-null code when the browser refuses to decode the uploaded file
+  // (codec not supported, container corrupt, etc.). The bridge analysis keeps running
+  // regardless — only the in-browser preview is affected.
+  const [videoErrorCode, setVideoErrorCode] = useState<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  // Stash the active blob URL outside React state so we can revoke it on unmount or
+  // when the user picks a new file — never inside a useEffect cleanup, because React's
+  // strict-mode double-mount in dev would revoke the URL between renders and leave the
+  // <video> element pointing at a dead blob.
+  const activeUrlRef = useRef<string | null>(null)
 
-  // Revoke object URLs when the file is replaced.
   useEffect(() => {
     return () => {
-      if (state.kind === 'ready') URL.revokeObjectURL(state.objectUrl)
+      if (activeUrlRef.current) {
+        URL.revokeObjectURL(activeUrlRef.current)
+        activeUrlRef.current = null
+      }
     }
-  }, [state])
+  }, [])
 
-  // Drive `onTimeUpdate` from the video element. We use rAF while playing so dots
-  // animate smoothly (the native `timeupdate` event fires ~4× per second, which feels
-  // jerky for overlay motion).
+  // Mirror video playback time into the parent so dots can follow the playhead.
+  // The native `timeupdate` event fires ~4× per second, which is enough for the dot
+  // animation and avoids hammering the parent with re-renders.
   useEffect(() => {
     if (state.kind !== 'ready' || !onTimeUpdate) return
     const video = videoRef.current
     if (!video) return
 
-    let rafId: number | null = null
-    const tick = () => {
-      onTimeUpdate(video.currentTime)
-      rafId = video.paused || video.ended ? null : requestAnimationFrame(tick)
-    }
-    const startLoop = () => {
-      if (rafId === null) rafId = requestAnimationFrame(tick)
-    }
-    const stopLoop = () => {
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId)
-        rafId = null
-      }
-      onTimeUpdate(video.currentTime)
-    }
-
-    // Initial paint at t=0.
-    onTimeUpdate(video.currentTime)
-
-    video.addEventListener('play', startLoop)
-    video.addEventListener('pause', stopLoop)
-    video.addEventListener('seeked', stopLoop)
-    video.addEventListener('ended', stopLoop)
-
+    const emit = () => onTimeUpdate(video.currentTime)
+    emit()
+    video.addEventListener('timeupdate', emit)
+    video.addEventListener('seeked', emit)
     return () => {
-      video.removeEventListener('play', startLoop)
-      video.removeEventListener('pause', stopLoop)
-      video.removeEventListener('seeked', stopLoop)
-      video.removeEventListener('ended', stopLoop)
-      if (rafId !== null) cancelAnimationFrame(rafId)
+      video.removeEventListener('timeupdate', emit)
+      video.removeEventListener('seeked', emit)
     }
   }, [state.kind, onTimeUpdate])
 
   const handleFile = useCallback(
     async (file?: File | null) => {
       if (!file) return
+      // If there's already a blob URL from a previous upload, revoke it before replacing.
+      if (activeUrlRef.current) {
+        URL.revokeObjectURL(activeUrlRef.current)
+      }
       const objectUrl = URL.createObjectURL(file)
+      activeUrlRef.current = objectUrl
+      setVideoErrorCode(null)
       setState({ kind: 'uploading', fileName: file.name })
 
       try {
@@ -95,10 +88,12 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate }: Props)
   )
 
   const reset = useCallback(() => {
-    setState(prev => {
-      if (prev.kind === 'ready') URL.revokeObjectURL(prev.objectUrl)
-      return { kind: 'idle' }
-    })
+    if (activeUrlRef.current) {
+      URL.revokeObjectURL(activeUrlRef.current)
+      activeUrlRef.current = null
+    }
+    setVideoErrorCode(null)
+    setState({ kind: 'idle' })
     if (inputRef.current) inputRef.current.value = ''
   }, [])
 
@@ -181,44 +176,85 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate }: Props)
     )
   }
 
-  // Ready: render the actual uploaded video.
+  // Ready: file picked, render the actual video below a small header strip with the
+  // filename and a reset button. The header lives in a sibling div (not an overlay)
+  // so nothing can intercept clicks on the video itself.
   return (
-    <div className="glass-mount relative w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-black/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.45)]">
-      <div className="relative aspect-video w-full">
+    <div className="glass-mount w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-black/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.45)]">
+      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-[12px] font-medium text-white/85" title={state.fileName}>
+            {state.fileName}
+          </span>
+          {state.analysisId === null && (
+            <span className="rounded-full bg-[rgba(255,107,107,0.18)] border border-[rgba(255,107,107,0.35)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--miss)]">
+              Local only
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={reset}
+          className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white/8 text-white/80 transition-colors hover:bg-white/15 hover:text-white"
+          aria-label="Replace upload"
+          title="Replace upload"
+        >
+          <X size={12} />
+        </button>
+      </div>
+
+      {videoErrorCode === null ? (
         <video
           ref={videoRef}
+          key={state.objectUrl}
           src={state.objectUrl}
           controls
           playsInline
-          className="absolute inset-0 h-full w-full object-contain bg-black"
+          preload="metadata"
+          onError={(e) => {
+            const code = e.currentTarget.error?.code ?? 0
+            setVideoErrorCode(code)
+          }}
+          className="block aspect-video w-full bg-black"
           aria-label={`Game footage — ${gameLabel}`}
         />
+      ) : (
+        <UnplayablePlaceholder code={videoErrorCode} />
+      )}
+    </div>
+  )
+}
 
-        {/* Top overlay row (sits above controls because of pointer-events) */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 p-4">
-          <div className="pointer-events-auto flex items-center gap-2">
-            <LiveBadge size="md" variant="overlay" />
-            <span className="max-w-[260px] truncate rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm border border-white/10">
-              {state.fileName}
-            </span>
-            {state.analysisId === null && (
-              <span className="rounded-full bg-[rgba(255,107,107,0.18)] border border-[rgba(255,107,107,0.35)] px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-[var(--miss)] backdrop-blur-sm">
-                Local only
-              </span>
-            )}
-          </div>
-          <div className="pointer-events-auto flex items-center gap-2">
-            <button
-              type="button"
-              onClick={reset}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm border border-white/10 transition-colors hover:bg-black/75"
-              aria-label="Replace upload"
-            >
-              <X size={13} />
-            </button>
-          </div>
-        </div>
+// 1 = MEDIA_ERR_ABORTED, 2 = NETWORK, 3 = DECODE, 4 = SRC_NOT_SUPPORTED.
+// In practice, all three of 2/3/4 mean "browser can't decode this file" — the analysis
+// backend still works, only the in-browser preview is unavailable.
+function UnplayablePlaceholder({ code }: { code: number }) {
+  const headline =
+    code === 4
+      ? "Browser can't play this file"
+      : code === 3
+        ? 'Video decoder failed'
+        : code === 2
+          ? 'Network error loading video'
+          : 'Video playback unavailable'
+
+  const detail =
+    code === 4
+      ? 'Likely an unsupported codec (MPEG-4 Part 2, HEVC, etc). Re-encode to H.264 to preview it here. The shot map and team stats below are still running on the file you uploaded.'
+      : 'The shot map and team stats below are still running on the file you uploaded — only the in-browser preview is affected.'
+
+  return (
+    <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 bg-black/60 px-8 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(255,107,107,0.35)] bg-[rgba(255,107,107,0.10)] text-[var(--miss)]">
+        <FileWarning size={20} />
       </div>
+      <p
+        className="text-sm font-semibold text-[var(--text)]"
+        style={{ fontFamily: 'var(--font-display)' }}
+      >
+        {headline}
+      </p>
+      <p className="max-w-[460px] text-xs leading-relaxed text-[var(--text-muted)]">{detail}</p>
     </div>
   )
 }

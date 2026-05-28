@@ -60,6 +60,7 @@ export function CourtMap({
         frames={frames}
         currentTime={currentTime}
         totalTracks={playerTracks.length}
+        teams={teams}
       />
     )
   }
@@ -109,9 +110,9 @@ export function CourtMap({
   )
 }
 
-// Palette used when no team classifier is wired up yet. Track IDs cycle through these
-// so neighbouring players still look distinct on the court.
-const TRACK_PALETTE = ['#2dd4bf', '#60a5fa', '#f472b6', '#facc15', '#a78bfa', '#fb923c', '#34d399', '#f87171']
+// Fallback colour for any dot whose teamId is missing from the teams dict — shouldn't
+// happen with the current analyzer, but the GUI should still render rather than crash.
+const UNKNOWN_TEAM_COLOR = '#6c8cff'
 
 function ModelCourtImage({
   imageUrl,
@@ -119,12 +120,14 @@ function ModelCourtImage({
   frames,
   currentTime,
   totalTracks,
+  teams,
 }: {
   imageUrl: string
   court?: CourtMeta | null
   frames?: AnalysisFrame[]
   currentTime: number
   totalTracks: number
+  teams: Record<string, Team>
 }) {
   const [loadError, setLoadError] = useState(false)
 
@@ -175,7 +178,7 @@ function ModelCourtImage({
           {activeDots.map(dot => {
             const cx = dot.x * scale + padding
             const cy = dot.y * scale + padding
-            const color = TRACK_PALETTE[Math.abs(dot.trackId) % TRACK_PALETTE.length]
+            const color = teams[dot.teamId]?.color ?? UNKNOWN_TEAM_COLOR
             return (
               <g key={dot.trackId}>
                 <circle cx={cx} cy={cy} r={18} fill={color} fillOpacity={0.25} />
@@ -201,6 +204,7 @@ function ModelCourtImage({
 
 interface ActiveDot {
   trackId: number
+  teamId: string
   x: number  // feet
   y: number  // feet
 }
@@ -212,9 +216,13 @@ interface ActiveDot {
  */
 function interpolateDots(frames: AnalysisFrame[], t: number): ActiveDot[] {
   if (frames.length === 0) return []
-  if (t <= frames[0].t) return frames[0].players.map(p => ({ trackId: p.trackId, x: p.x, y: p.y }))
+  if (t <= frames[0].t) {
+    return frames[0].players.map(p => ({ trackId: p.trackId, teamId: p.teamId, x: p.x, y: p.y }))
+  }
   const last = frames[frames.length - 1]
-  if (t >= last.t) return last.players.map(p => ({ trackId: p.trackId, x: p.x, y: p.y }))
+  if (t >= last.t) {
+    return last.players.map(p => ({ trackId: p.trackId, teamId: p.teamId, x: p.x, y: p.y }))
+  }
 
   // Binary search for the first sample with t >= currentTime.
   let lo = 0
@@ -238,11 +246,11 @@ function interpolateDots(frames: AnalysisFrame[], t: number): ActiveDot[] {
     const a = prevById.get(id)
     const b = nextById.get(id)
     if (a && b) {
-      dots.push({ trackId: id, x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u })
+      dots.push({ trackId: id, teamId: a.teamId, x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u })
     } else if (a) {
-      dots.push({ trackId: id, x: a.x, y: a.y })
+      dots.push({ trackId: id, teamId: a.teamId, x: a.x, y: a.y })
     } else if (b) {
-      dots.push({ trackId: id, x: b.x, y: b.y })
+      dots.push({ trackId: id, teamId: b.teamId, x: b.x, y: b.y })
     }
   }
   return dots

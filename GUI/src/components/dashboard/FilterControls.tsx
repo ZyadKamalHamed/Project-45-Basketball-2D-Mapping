@@ -1,6 +1,6 @@
 'use client'
 
-import { Team, CourtMode } from '@/types/basketball'
+import { Team } from '@/types/basketball'
 import { useFilters, useFilterDispatch } from '@/context/FilterContext'
 import { RotateCcw } from 'lucide-react'
 
@@ -18,8 +18,7 @@ export function FilterControls({ teams }: Props) {
 
   const hasActiveFilter =
     filters.teamId !== null ||
-    filters.shotType !== null ||
-    filters.courtMode !== 'half'
+    filters.shotType !== null
 
   // The legacy filter shape uses shotType in {'jump','layup','dunk'} — we don't expose those any more,
   // so the shot-type chip stores 2P/3P intent by re-deriving inside CourtMap... but CourtMap reads
@@ -58,27 +57,12 @@ export function FilterControls({ teams }: Props) {
 
       <Divider />
 
-      {/* Shot-type chips (2P / 3P split based on isThreePointer mapping in CourtMap will be wired
-          when stats-utils supports it; for now this filters CourtMap via the synthetic 'all' state) */}
+      {/* Shot-type chips (2P / 3P) — piggyback on the legacy shotType field until the
+          isThreePointer filter slot lands in stats-utils. */}
       <ChipGroup label="Type">
         <ShotTypeChip current={shotTypeChipValue(filters.shotType)} target="all" onSelect={chip => applyShotTypeChip(chip, dispatch)} />
         <ShotTypeChip current={shotTypeChipValue(filters.shotType)} target="2P" onSelect={chip => applyShotTypeChip(chip, dispatch)} />
         <ShotTypeChip current={shotTypeChipValue(filters.shotType)} target="3P" onSelect={chip => applyShotTypeChip(chip, dispatch)} />
-      </ChipGroup>
-
-      <Divider />
-
-      {/* Court mode chips */}
-      <ChipGroup label="Court">
-        {(['half', 'full'] as CourtMode[]).map(mode => (
-          <Chip
-            key={mode}
-            active={filters.courtMode === mode}
-            onClick={() => dispatch({ type: 'SET_COURT_MODE', payload: mode })}
-          >
-            {mode === 'half' ? 'Half' : 'Full'}
-          </Chip>
-        ))}
       </ChipGroup>
 
       {hasActiveFilter && (
