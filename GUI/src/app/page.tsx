@@ -7,16 +7,26 @@ import { FilterControls } from '@/components/dashboard/FilterControls'
 import { StatsCardsRow } from '@/components/dashboard/StatsCardsRow'
 import { VideoFeed } from '@/components/dashboard/VideoFeed'
 import { LiveBadge } from '@/components/dashboard/LiveBadge'
-import { MOCK_ANALYSIS } from '@/lib/mock-data'
 import { computeTeamStats } from '@/lib/stats-utils'
 import { pollResult } from '@/lib/analysis-client'
 import type { VideoAnalysis } from '@/types/basketball'
 
 export default function HomePage() {
-  const { analysis, status, message, setAnalysisId } = useAnalysis()
-  const { shots, playerTracks, teams, gameLabel } = analysis
+  const { analysis, analysisId, status, message, setAnalysisId } = useAnalysis()
+  const [currentTime, setCurrentTime] = useState(0)
+
+  const teams = analysis?.teams ?? {}
+  const shots = analysis?.shots ?? []
+  const playerTracks = analysis?.playerTracks ?? []
+  const frames = analysis?.frames ?? []
+  const court = analysis?.court ?? null
+  const gameLabel = analysis?.gameLabel ?? 'No clip uploaded'
+  const courtImageUrl = courtImageFor(analysisId, status, analysis)
 
   const teamStats = useMemo(() => computeTeamStats(shots, teams), [shots, teams])
+  const hasTeams = Object.keys(teams).length > 0
+  const showCourt = status === 'ready' && (courtImageUrl !== null || playerTracks.length > 0)
+  const showStats = status === 'ready' && teamStats.some(t => t.totalShots > 0)
 
   return (
     <FilterProvider>
@@ -24,28 +34,50 @@ export default function HomePage() {
         <DashboardHeader gameLabel={gameLabel} status={status} message={message} />
 
         <main className="mx-auto w-full max-w-[1280px] px-6 pb-12 pt-6">
-          {/* Top row: video + shot map */}
+          {/* Top row: video + court map */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
             <section className="min-w-0">
-              <VideoFeed gameLabel={gameLabel} onAnalysisStarted={setAnalysisId} />
+              <VideoFeed
+                gameLabel={gameLabel}
+                onAnalysisStarted={setAnalysisId}
+                onTimeUpdate={setCurrentTime}
+              />
             </section>
 
             <section className="min-w-0">
               <div className="glass-panel glass-mount h-full p-5">
-                <div className="mb-4">
-                  <FilterControls teams={teams} />
-                </div>
-                <CourtMap shots={shots} playerTracks={playerTracks} teams={teams} />
+                {showCourt ? (
+                  <>
+                    {hasTeams && (
+                      <div className="mb-4">
+                        <FilterControls teams={teams} />
+                      </div>
+                    )}
+                    <CourtMap
+                      shots={shots}
+                      playerTracks={playerTracks}
+                      teams={teams}
+                      imageUrl={courtImageUrl}
+                      frames={frames}
+                      court={court}
+                      currentTime={currentTime}
+                    />
+                  </>
+                ) : (
+                  <CourtPlaceholder status={status} />
+                )}
               </div>
             </section>
           </div>
 
-          {/* Team stats row */}
-          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {teamStats.map(stats => (
-              <StatsCardsRow.Card key={stats.teamId} stats={stats} />
-            ))}
-          </div>
+          {/* Team stats row (only renders when analysis has shot data) */}
+          {showStats && (
+            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+              {teamStats.map(stats => (
+                <StatsCardsRow.Card key={stats.teamId} stats={stats} />
+              ))}
+            </div>
+          )}
         </main>
 
         <footer className="border-t border-[var(--border)] px-6 py-5 text-center">
@@ -55,6 +87,40 @@ export default function HomePage() {
         </footer>
       </div>
     </FilterProvider>
+  )
+}
+
+function courtImageFor(
+  analysisId: string | null,
+  status: AnalysisStatus,
+  analysis: VideoAnalysis | null,
+): string | null {
+  if (!analysisId || status !== 'ready') return null
+  // Preferred: server-provided URL on the payload. Fallback: convention-based path.
+  if (analysis && typeof (analysis as { courtImageUrl?: string }).courtImageUrl === 'string') {
+    return (analysis as { courtImageUrl?: string }).courtImageUrl as string
+  }
+  return `/api/analyze/result/${analysisId}/court`
+}
+
+function CourtPlaceholder({ status }: { status: AnalysisStatus }) {
+  const lines: Record<AnalysisStatus, [string, string]> = {
+    idle: ['Court map appears here', 'Upload game footage to project player positions onto the court.'],
+    processing: ['Building court map…', 'Running detector + court homography. This can take a minute.'],
+    ready: ['No on-court tracks', 'The model did not return any player paths for this clip.'],
+    error: ['Analysis failed', 'See the banner above for details, or try a different clip.'],
+  }
+  const [title, sub] = lines[status]
+  return (
+    <div className="flex h-full min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface-2)] px-6 text-center">
+      <p
+        className="text-sm font-semibold text-[var(--text)]"
+        style={{ fontFamily: 'var(--font-display)' }}
+      >
+        {title}
+      </p>
+      <p className="mt-1.5 max-w-[280px] text-xs text-[var(--text-muted)]">{sub}</p>
+    </div>
   )
 }
 
@@ -138,7 +204,8 @@ function Logo() {
 type AnalysisStatus = 'idle' | 'processing' | 'ready' | 'error'
 
 interface UseAnalysisReturn {
-  analysis: VideoAnalysis
+  analysis: VideoAnalysis | null
+  analysisId: string | null
   status: AnalysisStatus
   message: string | null
   setAnalysisId: (id: string | null) => void
@@ -146,7 +213,7 @@ interface UseAnalysisReturn {
 
 function useAnalysis(): UseAnalysisReturn {
   const [analysisId, setAnalysisId] = useState<string | null>(null)
-  const [analysis, setAnalysis] = useState<VideoAnalysis>(MOCK_ANALYSIS)
+  const [analysis, setAnalysis] = useState<VideoAnalysis | null>(null)
   const [status, setStatus] = useState<AnalysisStatus>('idle')
   const [message, setMessage] = useState<string | null>(null)
 
@@ -155,10 +222,11 @@ function useAnalysis(): UseAnalysisReturn {
     if (id === null) {
       setStatus('idle')
       setMessage(null)
-      setAnalysis(MOCK_ANALYSIS)
+      setAnalysis(null)
     } else {
       setStatus('processing')
       setMessage(null)
+      setAnalysis(null)
     }
   }, [])
 
@@ -171,14 +239,7 @@ function useAnalysis(): UseAnalysisReturn {
         for await (const result of pollResult(id, { intervalMs: 2000 })) {
           if (cancelled) return
           if (result.status === 'ready' && result.analysis) {
-            // Only swap to live data if we actually got teams/players — empty results would
-            // leave the dashboard looking broken, so we keep the mock context around.
-            const hasContent =
-              Object.keys(result.analysis.teams ?? {}).length > 0 ||
-              (result.analysis.playerTracks ?? []).length > 0
-            if (hasContent) {
-              setAnalysis(result.analysis)
-            }
+            setAnalysis(result.analysis)
             setStatus('ready')
             return
           }
@@ -201,5 +262,5 @@ function useAnalysis(): UseAnalysisReturn {
     }
   }, [analysisId])
 
-  return { analysis, status, message, setAnalysisId: handleSetAnalysisId }
+  return { analysis, analysisId, status, message, setAnalysisId: handleSetAnalysisId }
 }

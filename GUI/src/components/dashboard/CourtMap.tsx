@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
-import { Shot, PlayerTrack, Team } from '@/types/basketball'
+import { useMemo, useState } from 'react'
+import { Shot, PlayerTrack, Team, AnalysisFrame, CourtMeta } from '@/types/basketball'
 import { useFilters } from '@/context/FilterContext'
 import { COURT, courtToSvg, getCourtHeight } from '@/lib/court-utils'
 import { ShotMarker } from './ShotMarker'
@@ -10,6 +10,14 @@ interface Props {
   shots: Shot[]
   playerTracks: PlayerTrack[]
   teams: Record<string, Team>
+  /** When supplied, renders the model-rendered court PNG instead of the synthetic SVG court. */
+  imageUrl?: string | null
+  /** Time-aligned dot samples used to animate over video playback. */
+  frames?: AnalysisFrame[]
+  /** Pixel/feet metadata for the court image so dots line up with the rendered PNG. */
+  court?: CourtMeta | null
+  /** Current playback time of the uploaded video, in seconds. */
+  currentTime?: number
 }
 
 const LINE = 'rgba(255, 255, 255, 0.35)'
@@ -17,10 +25,17 @@ const COURT_BG = 'rgba(12, 18, 38, 0.45)'
 const PAINT_BG = 'rgba(108, 140, 255, 0.18)'
 const RIM = '#ffae5b'
 
-export function CourtMap({ shots, playerTracks, teams }: Props) {
+export function CourtMap({
+  shots,
+  playerTracks,
+  teams,
+  imageUrl,
+  frames,
+  court,
+  currentTime = 0,
+}: Props) {
   const filters = useFilters()
   const { courtMode } = filters
-  const height = getCourtHeight(courtMode)
 
   const trackMap = useMemo(
     () => new Map(playerTracks.map(pt => [pt.trackId, pt])),
@@ -35,6 +50,21 @@ export function CourtMap({ shots, playerTracks, teams }: Props) {
       return true
     })
   }, [shots, filters])
+
+  // Prefer the rendered PNG from the model when available.
+  if (imageUrl) {
+    return (
+      <ModelCourtImage
+        imageUrl={imageUrl}
+        court={court}
+        frames={frames}
+        currentTime={currentTime}
+        totalTracks={playerTracks.length}
+      />
+    )
+  }
+
+  const height = getCourtHeight(courtMode)
 
   return (
     <div className="w-full">
@@ -77,6 +107,145 @@ export function CourtMap({ shots, playerTracks, teams }: Props) {
       </div>
     </div>
   )
+}
+
+// Palette used when no team classifier is wired up yet. Track IDs cycle through these
+// so neighbouring players still look distinct on the court.
+const TRACK_PALETTE = ['#2dd4bf', '#60a5fa', '#f472b6', '#facc15', '#a78bfa', '#fb923c', '#34d399', '#f87171']
+
+function ModelCourtImage({
+  imageUrl,
+  court,
+  frames,
+  currentTime,
+  totalTracks,
+}: {
+  imageUrl: string
+  court?: CourtMeta | null
+  frames?: AnalysisFrame[]
+  currentTime: number
+  totalTracks: number
+}) {
+  const [loadError, setLoadError] = useState(false)
+
+  const activeDots = useMemo(
+    () => (frames && frames.length > 0 ? interpolateDots(frames, currentTime) : []),
+    [frames, currentTime],
+  )
+
+  if (loadError) {
+    return (
+      <div className="flex h-full min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface-2)] px-6 text-center">
+        <p
+          className="text-sm font-semibold text-[var(--text)]"
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
+          Court render unavailable
+        </p>
+        <p className="mt-1.5 max-w-[280px] text-xs text-[var(--text-muted)]">
+          The analyzer ran but no court image was produced for this clip.
+        </p>
+      </div>
+    )
+  }
+
+  // Use the rendered PNG's pixel dimensions when available so the SVG overlay matches
+  // the underlying image exactly. Fallback: NBA full-court aspect with default padding
+  // (sports.basketball.draw_court uses scale=20 px/ft and 50px padding).
+  const widthPx = court?.widthPx ?? 1980
+  const heightPx = court?.heightPx ?? 1100
+  const scale = court?.scale ?? 20
+  const padding = court?.padding ?? 50
+
+  return (
+    <div className="w-full">
+      <div className="relative overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface-2)]">
+        {/* eslint-disable-next-line @next/next/no-img-element -- dynamic API endpoint */}
+        <img
+          src={imageUrl}
+          alt="Court map with live player positions"
+          className="block h-auto w-full"
+          onError={() => setLoadError(true)}
+        />
+        <svg
+          viewBox={`0 0 ${widthPx} ${heightPx}`}
+          preserveAspectRatio="none"
+          className="pointer-events-none absolute inset-0 h-full w-full"
+        >
+          {activeDots.map(dot => {
+            const cx = dot.x * scale + padding
+            const cy = dot.y * scale + padding
+            const color = TRACK_PALETTE[Math.abs(dot.trackId) % TRACK_PALETTE.length]
+            return (
+              <g key={dot.trackId}>
+                <circle cx={cx} cy={cy} r={18} fill={color} fillOpacity={0.25} />
+                <circle cx={cx} cy={cy} r={11} fill={color} stroke="#0b1020" strokeWidth={2.5} />
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+      <div className="mt-4 flex items-center gap-5 text-xs text-[var(--text-muted)]">
+        <span className="tabular-nums text-[var(--text-soft)]">
+          {totalTracks} track{totalTracks !== 1 ? 's' : ''} projected
+        </span>
+        {frames && frames.length > 0 && (
+          <span className="ml-auto tabular-nums text-[var(--text-soft)]">
+            {activeDots.length} on court
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+interface ActiveDot {
+  trackId: number
+  x: number  // feet
+  y: number  // feet
+}
+
+/**
+ * Pick the surrounding two samples in `frames` for `t` and lerp dot positions between
+ * them. Tracks that exist in only one of the two samples are emitted unmoved (so they
+ * pop in/out cleanly when the model loses or reacquires them).
+ */
+function interpolateDots(frames: AnalysisFrame[], t: number): ActiveDot[] {
+  if (frames.length === 0) return []
+  if (t <= frames[0].t) return frames[0].players.map(p => ({ trackId: p.trackId, x: p.x, y: p.y }))
+  const last = frames[frames.length - 1]
+  if (t >= last.t) return last.players.map(p => ({ trackId: p.trackId, x: p.x, y: p.y }))
+
+  // Binary search for the first sample with t >= currentTime.
+  let lo = 0
+  let hi = frames.length - 1
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1
+    if (frames[mid].t < t) lo = mid + 1
+    else hi = mid
+  }
+  const next = frames[lo]
+  const prev = frames[Math.max(0, lo - 1)]
+  const span = next.t - prev.t
+  const u = span > 0 ? (t - prev.t) / span : 0
+
+  const prevById = new Map(prev.players.map(p => [p.trackId, p]))
+  const nextById = new Map(next.players.map(p => [p.trackId, p]))
+  const allIds = new Set<number>([...prevById.keys(), ...nextById.keys()])
+
+  const dots: ActiveDot[] = []
+  for (const id of allIds) {
+    const a = prevById.get(id)
+    const b = nextById.get(id)
+    if (a && b) {
+      dots.push({ trackId: id, x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u })
+    } else if (a) {
+      dots.push({ trackId: id, x: a.x, y: a.y })
+    } else if (b) {
+      dots.push({ trackId: id, x: b.x, y: b.y })
+    }
+  }
+  return dots
 }
 
 function LegendItem({ color, symbol, label }: { color: string; symbol: string; label: string }) {

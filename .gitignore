@@ -1,4 +1,7 @@
 .env
+.python-version
+venv/
+.DS_Store
 Data/*.zip
 Data/Basketball and net detection.v1i.yolo26/
 Data/basketball-court-detection-2.v1-1.yolov8/

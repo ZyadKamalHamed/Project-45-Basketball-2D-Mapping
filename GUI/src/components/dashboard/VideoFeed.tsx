@@ -8,6 +8,8 @@ import { uploadVideo } from '@/lib/analysis-client'
 interface Props {
   gameLabel: string
   onAnalysisStarted?: (analysisId: string) => void
+  /** Fires on `timeupdate` (and play/pause/seek) so the parent can sync overlays to playback. */
+  onTimeUpdate?: (currentTime: number) => void
 }
 
 const ACCEPTED = '.mp4,.mov,video/mp4,video/quicktime'
@@ -18,7 +20,7 @@ type UploadState =
   | { kind: 'ready'; fileName: string; objectUrl: string; analysisId: string | null }
   | { kind: 'error'; message: string }
 
-export function VideoFeed({ gameLabel, onAnalysisStarted }: Props) {
+export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate }: Props) {
   const [state, setState] = useState<UploadState>({ kind: 'idle' })
   const [dragActive, setDragActive] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -30,6 +32,47 @@ export function VideoFeed({ gameLabel, onAnalysisStarted }: Props) {
       if (state.kind === 'ready') URL.revokeObjectURL(state.objectUrl)
     }
   }, [state])
+
+  // Drive `onTimeUpdate` from the video element. We use rAF while playing so dots
+  // animate smoothly (the native `timeupdate` event fires ~4× per second, which feels
+  // jerky for overlay motion).
+  useEffect(() => {
+    if (state.kind !== 'ready' || !onTimeUpdate) return
+    const video = videoRef.current
+    if (!video) return
+
+    let rafId: number | null = null
+    const tick = () => {
+      onTimeUpdate(video.currentTime)
+      rafId = video.paused || video.ended ? null : requestAnimationFrame(tick)
+    }
+    const startLoop = () => {
+      if (rafId === null) rafId = requestAnimationFrame(tick)
+    }
+    const stopLoop = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId)
+        rafId = null
+      }
+      onTimeUpdate(video.currentTime)
+    }
+
+    // Initial paint at t=0.
+    onTimeUpdate(video.currentTime)
+
+    video.addEventListener('play', startLoop)
+    video.addEventListener('pause', stopLoop)
+    video.addEventListener('seeked', stopLoop)
+    video.addEventListener('ended', stopLoop)
+
+    return () => {
+      video.removeEventListener('play', startLoop)
+      video.removeEventListener('pause', stopLoop)
+      video.removeEventListener('seeked', stopLoop)
+      video.removeEventListener('ended', stopLoop)
+      if (rafId !== null) cancelAnimationFrame(rafId)
+    }
+  }, [state.kind, onTimeUpdate])
 
   const handleFile = useCallback(
     async (file?: File | null) => {

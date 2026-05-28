@@ -29,6 +29,29 @@ export interface Team {
   players: PlayerTrack[]
 }
 
+export interface FramePlayer {
+  trackId: number
+  x: number  // court coords, feet
+  y: number  // court coords, feet
+  teamId: string
+}
+
+export interface AnalysisFrame {
+  frameIndex: number  // index into the source video
+  t: number           // timestamp in seconds (frameIndex / fps)
+  players: FramePlayer[]
+}
+
+export interface CourtMeta {
+  imageUrl: string | null
+  widthPx: number
+  heightPx: number
+  scale: number          // pixels per foot used when rendering the base court
+  padding: number        // pixel padding around the court rectangle
+  courtLengthFt: number  // x range = [0, courtLengthFt]
+  courtWidthFt: number   // y range = [0, courtWidthFt]
+}
+
 export interface VideoAnalysis {
   videoId: string
   gameLabel: string
@@ -38,6 +61,14 @@ export interface VideoAnalysis {
   teams: Record<string, Team>
   shots: Shot[]
   playerTracks: PlayerTrack[]
+  // Time-aligned dot samples used to animate the court map over video playback.
+  frames?: AnalysisFrame[]
+  // Pixel/feet metadata for the rendered court image — lets the GUI position dots in
+  // the same coordinate space as the PNG.
+  court?: CourtMeta
+  // Server-rendered court map (e.g. `/api/analyze/result/<id>/court`). Optional — the
+  // GUI falls back to the conventional path when omitted.
+  courtImageUrl?: string
 }
 
 export interface ShotFilters {

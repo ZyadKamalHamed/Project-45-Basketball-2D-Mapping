@@ -28,6 +28,7 @@ export function computeTeamStats(shots: Shot[], teams: Record<string, Team>): Te
       twoPointAttempts: twoAttempts,
       twoPointMakes: twoMakes,
       twoPPercent: pct(twoMakes, twoAttempts),
+      points: 2 * twoMakes + 3 * threeMakes,
     }
   })
 }
