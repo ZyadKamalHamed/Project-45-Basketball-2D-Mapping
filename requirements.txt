@@ -1,3 +1,28 @@
-ultralytics
-react
-next
+# Python dependencies for the basketball 2D mapping bridge + the three notebooks.
+#
+# Install:
+#   pip install -r requirements.txt
+#
+# The `sports` package is installed from GitHub because the basketball branch with
+# CourtConfiguration / TeamClassifier isn't published on PyPI.
+
+# Detection + tracking
+ultralytics>=8.4.50
+torch>=2.12.0
+torchvision>=0.27.0
+
+# Computer vision utilities (detection wrappers, video IO, court drawing helpers)
+supervision>=0.28.0
+opencv-python-headless>=4.13.0
+git+https://github.com/roboflow/sports.git@feat/basketball
+
+# Tabular processing for shot-detection trajectories
+numpy>=2.3.0
+pandas>=2.3.0
+scipy>=1.17.0
+
+# YAML config (used by the CVM dataset prep cell)
+pyyaml>=6.0
+
+# Progress bars in the notebooks
+tqdm>=4.67.0

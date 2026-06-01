@@ -37,14 +37,15 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 # Weight paths can be overridden via env vars so the same script runs on SageMaker
-# (different file layout) without code changes.
+# (different file layout) without code changes. Locally, both weight files live under
+# the top-level `weights/` directory.
 CVM_MODEL_PATH = Path(os.environ.get(
     "CVM_MODEL_PATH",
-    str(REPO_ROOT / "runs" / "CVM_Best.pt"),
+    str(REPO_ROOT / "weights" / "runs" / "CVM_Best.pt"),
 )).resolve()
 PLAYER_MODEL_PATH = Path(os.environ.get(
     "PLAYER_MODEL_PATH",
-    str(REPO_ROOT / "Data" / "runs_abdo" / "Player_detection.pt"),
+    str(REPO_ROOT / "weights" / "runs_abdo" / "Player_detection.pt"),
 )).resolve()
 
 # Detection runs every frame so shot detection has a continuous ball + rim trajectory.

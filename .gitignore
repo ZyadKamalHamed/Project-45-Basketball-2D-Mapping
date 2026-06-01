@@ -2,10 +2,29 @@
 .python-version
 venv/
 .DS_Store
+
+# Python build artefacts
+__pycache__/
+*.pyc
+
+# Training datasets (downloaded on first notebook run)
 Data/*.zip
 Data/Basketball and net detection.v1i.yolo26/
 Data/basketball-court-detection-2.v1-1.yolov8/
 Data/basketball-player-detection-3.v1-1.yolo26/
+
+# Bridge runtime artefacts (uploaded videos + generated JSON / PNG / annotated MP4)
+GUI/tmp/
+
+# Trained model weights — produced by SageMaker training, too large for git
+*.pt
+weights/runs/
+weights/runs_abdo/
+
+# Local test videos (large, not part of the deliverable)
+test_videos/
+
+# Reference material and assistant tooling
 example + guidlines/
 .claude/
 AGENTS.md
