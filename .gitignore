@@ -16,10 +16,12 @@ Data/basketball-player-detection-3.v1-1.yolo26/
 # Bridge runtime artefacts (uploaded videos + generated JSON / PNG / annotated MP4)
 GUI/tmp/
 
-# Trained model weights — produced by SageMaker training, too large for git
-*.pt
-weights/runs/
-weights/runs_abdo/
+# Trained weights ARE committed to weights/ so the grader can run the pipeline
+# without re-training. The only weight-folder things we leave out are Ultralytics'
+# built-in demo images and stray detect-test outputs that show up if anyone calls
+# model.predict() without a `source` argument.
+weights/runs/detect/predict*/
+weights/runs/detect/train/
 
 # Local test videos (large, not part of the deliverable)
 test_videos/
