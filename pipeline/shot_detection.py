@@ -1,15 +1,22 @@
 """
-Basketball shot detection.
+Shot detection — pipeline module.
 
-Port of Ilias's `Shot-Detection-and-Tracking.ipynb` into a standalone module the
-bridge script can call. Given per-frame detection records (from Abdo's 6-class
-detector), this builds smoothed ball + rim trajectories, finds shot candidates
-(ball approaches rim, plausible arc), classifies each as make/miss/unknown using
-the `ball-in-basket` class + a geometric hoop-plane test, and assigns the most
-likely shooter from nearby player detections.
+Faithful Python port of `Shot-Detection-and-Tracking.ipynb` (Ilias's notebook). Every
+function in this file corresponds to a notebook cell or helper from that notebook —
+see DEFENSE_NOTES.md "Module → notebook map" for the cell-by-cell mapping.
+
+Given per-frame detection records (from Abdo's 6-class player detector), this builds
+smoothed ball + rim trajectories, finds shot candidates (ball approaches rim with a
+plausible arc), classifies each as make / miss / unknown using the `ball-in-basket`
+class + a geometric hoop-plane crossing test, and assigns the most likely shooter
+from nearby player detections.
 
 The class IDs match Abdo's model:
     0=ball  1=ball-in-basket  2=number  3=player  4=referee  5=rim
+
+The only deviation from the notebook is in `_assign_likely_shooter`, which aggregates
+per-tracker observations over a lookback window instead of picking a single best
+(frame, player) pair. This change is documented inline and in DEFENSE_NOTES.md.
 """
 
 from __future__ import annotations

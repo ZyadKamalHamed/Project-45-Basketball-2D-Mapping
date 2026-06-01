@@ -6,6 +6,7 @@ import { CourtMap } from '@/components/dashboard/CourtMap'
 import { FilterControls } from '@/components/dashboard/FilterControls'
 import { StatsCardsRow } from '@/components/dashboard/StatsCardsRow'
 import { VideoFeed } from '@/components/dashboard/VideoFeed'
+import { ShotLog } from '@/components/dashboard/ShotLog'
 import { computeTeamStats } from '@/lib/stats-utils'
 import { pollResult } from '@/lib/analysis-client'
 import type { VideoAnalysis } from '@/types/basketball'
@@ -42,6 +43,7 @@ export default function HomePage() {
                 gameLabel={gameLabel}
                 onAnalysisStarted={setAnalysisId}
                 onTimeUpdate={setCurrentTime}
+                annotatedUrl={analysis?.annotatedVideoUrl ?? null}
               />
             </section>
 
@@ -59,9 +61,7 @@ export default function HomePage() {
                       playerTracks={playerTracks}
                       teams={teams}
                       imageUrl={courtImageUrl}
-                      frames={frames}
                       court={court}
-                      currentTime={currentTime}
                     />
                   </>
                 ) : (
@@ -77,6 +77,13 @@ export default function HomePage() {
               {teamStats.map(stats => (
                 <StatsCardsRow.Card key={stats.teamId} stats={stats} />
               ))}
+            </div>
+          )}
+
+          {/* Shot log — full width below the team cards. */}
+          {status === 'ready' && hasTeams && (
+            <div className="mt-6">
+              <ShotLog shots={shots} teams={teams} fps={analysis?.fps ?? 30} />
             </div>
           )}
         </main>

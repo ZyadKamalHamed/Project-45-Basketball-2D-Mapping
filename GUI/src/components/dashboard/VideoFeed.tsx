@@ -9,6 +9,9 @@ interface Props {
   onAnalysisStarted?: (analysisId: string) => void
   /** Fires on `timeupdate` (and play/pause/seek) so the parent can sync overlays to playback. */
   onTimeUpdate?: (currentTime: number) => void
+  /** Server-rendered annotated video. When present, the player swaps from the raw blob URL
+   *  to this so users see the team-coloured detection boxes on top of the source. */
+  annotatedUrl?: string | null
 }
 
 const ACCEPTED = '.mp4,.mov,video/mp4,video/quicktime'
@@ -19,7 +22,7 @@ type UploadState =
   | { kind: 'ready'; fileName: string; objectUrl: string; analysisId: string | null }
   | { kind: 'error'; message: string }
 
-export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate }: Props) {
+export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotatedUrl = null }: Props) {
   const [state, setState] = useState<UploadState>({ kind: 'idle' })
   const [dragActive, setDragActive] = useState(false)
   // Set to a non-null code when the browser refuses to decode the uploaded file
@@ -42,6 +45,13 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate }: Props)
       }
     }
   }, [])
+
+  // When the annotated MP4 URL becomes available we swap `src` to it. The previous video
+  // may have errored on a codec the browser couldn't play — the annotated stream is always
+  // H.264, so give it a fresh chance by clearing the error.
+  useEffect(() => {
+    if (annotatedUrl) setVideoErrorCode(null)
+  }, [annotatedUrl])
 
   // Mirror video playback time into the parent so dots can follow the playhead.
   // The native `timeupdate` event fires ~4× per second, which is enough for the dot
@@ -179,6 +189,12 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate }: Props)
   // Ready: file picked, render the actual video below a small header strip with the
   // filename and a reset button. The header lives in a sibling div (not an overlay)
   // so nothing can intercept clicks on the video itself.
+  //
+  // Source priority: prefer the server-rendered annotated MP4 once analysis finishes,
+  // otherwise fall back to the local blob URL. The `key` on the <video> element forces
+  // a fresh DOM element when the src changes so the browser actually picks up the swap.
+  const playbackSrc = annotatedUrl ?? state.objectUrl
+  const isAnnotated = playbackSrc === annotatedUrl
   return (
     <div className="glass-mount w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-black/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.45)]">
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2.5">
@@ -186,6 +202,11 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate }: Props)
           <span className="truncate text-[12px] font-medium text-white/85" title={state.fileName}>
             {state.fileName}
           </span>
+          {isAnnotated && (
+            <span className="rounded-full bg-[rgba(108,140,255,0.18)] border border-[rgba(108,140,255,0.35)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--accent)]">
+              Annotated
+            </span>
+          )}
           {state.analysisId === null && (
             <span className="rounded-full bg-[rgba(255,107,107,0.18)] border border-[rgba(255,107,107,0.35)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--miss)]">
               Local only
@@ -206,8 +227,8 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate }: Props)
       {videoErrorCode === null ? (
         <video
           ref={videoRef}
-          key={state.objectUrl}
-          src={state.objectUrl}
+          key={playbackSrc}
+          src={playbackSrc}
           controls
           playsInline
           preload="metadata"

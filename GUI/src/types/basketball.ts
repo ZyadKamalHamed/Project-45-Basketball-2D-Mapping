@@ -69,6 +69,9 @@ export interface VideoAnalysis {
   // Server-rendered court map (e.g. `/api/analyze/result/<id>/court`). Optional — the
   // GUI falls back to the conventional path when omitted.
   courtImageUrl?: string
+  // Server-rendered video with team-coloured boxes drawn on each frame. When present, the
+  // player swaps to this once analysis finishes so users see detections without re-uploading.
+  annotatedVideoUrl?: string
 }
 
 export interface ShotFilters {
