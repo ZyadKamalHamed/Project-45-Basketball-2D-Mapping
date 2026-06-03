@@ -29,5 +29,6 @@ test_videos/
 # Reference material and assistant tooling
 example + guidlines/
 .claude/
-AGENTS.md
-CLAUDE.md
+GUI/AGENTS.md
+GUI/CLAUDE.md
+DEFENSE_NOTES.md

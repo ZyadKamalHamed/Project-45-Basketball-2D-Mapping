@@ -108,10 +108,10 @@ npm run dev
 Open `http://localhost:3000`, upload an MP4 of a basketball clip, wait ~40 seconds
 on CPU (or ~5 seconds on GPU), and you'll see:
 
-- The video with team-coloured detection boxes overlaid (re-encoded H.264).
+- The video with team-coloured detection boxes overlaid 
 - A 2D shot map with O for makes / X for misses.
 - Two team stat cards: shots, makes, FG%, 3P%, 2P%, points.
-- A shot log table with time, team, distance, type, result.
+- A shot log table 
 
 
 ---

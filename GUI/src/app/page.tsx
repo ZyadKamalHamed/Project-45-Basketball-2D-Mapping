@@ -90,7 +90,7 @@ export default function HomePage() {
 
         <footer className="border-t border-[var(--border)] px-6 py-5 text-center">
           <p className="text-xs text-[var(--text-soft)]">
-            CourtVision · Live tracking analytics for professional basketball
+            CourtIQ · Live tracking analytics for professional basketball
           </p>
         </footer>
       </div>
@@ -150,7 +150,7 @@ function DashboardHeader({
             className="text-[15px] font-semibold tracking-tight text-[var(--text)]"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            CourtVision
+            CourtIQ
           </span>
           <span className="hidden text-[var(--text-soft)] sm:inline">·</span>
           <span className="hidden truncate text-sm text-[var(--text-muted)] sm:inline">

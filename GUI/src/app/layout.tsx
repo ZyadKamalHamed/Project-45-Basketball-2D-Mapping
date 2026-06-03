@@ -15,7 +15,7 @@ const display = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'CourtVision — Live Basketball Analytics',
+  title: 'CourtIQ — Live Basketball Analytics',
   description: 'Real-time shot tracking and analytics for professional basketball.',
 }
 
