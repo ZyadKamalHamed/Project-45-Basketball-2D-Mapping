@@ -1,7 +1,7 @@
 """
 Player detection — pipeline module.
 
-Wraps Abdo's 6-class YOLO detector and the BoT-SORT tracker calls used in his
+Wraps 6-class YOLO detector and the BoT-SORT tracker calls used in his
 `Player-Detection-and-Tracking-v2.ipynb`. The detector itself is the trained
 `Player_detection.pt` checkpoint produced by sections 1–4 of that notebook; this
 module never trains, only loads and runs.

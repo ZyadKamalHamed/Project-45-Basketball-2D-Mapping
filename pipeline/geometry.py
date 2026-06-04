@@ -2,7 +2,7 @@
 Court geometry helpers — pure NBA-rules math, no ML.
 
 These are not derived from any team notebook because they're just standard NBA court
-measurements. Defended in DEFENSE_NOTES.md as "deterministic geometry, no learning".
+measurements.
 
 Constants reflect the NBA full-court rectangle in feet, oriented with the long axis as
 the x dimension (0 → 94 ft) and the short axis as y (0 → 50 ft). Basket centres are
