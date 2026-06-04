@@ -1,8 +1,11 @@
+// The kind of shot attempted
 export type ShotType = 'jump' | 'layup' | 'dunk'
+// Whether a shot was made or missed
 export type ShotResult = 'made' | 'missed'
+// Half-court or full-court view of the map
 export type CourtMode = 'half' | 'full'
-export type ProcessingPhase = 'Detection' | 'Team Assignment' | 'Court Mapping' | 'Shot Detection'
 
+// A single shot attempt with its location, type and outcome
 export interface Shot {
   id: number
   frameIndex: number
@@ -15,6 +18,7 @@ export interface Shot {
   isThreePointer: boolean
 }
 
+// A tracked player identified by track id, with jersey and team details
 export interface PlayerTrack {
   trackId: number
   teamId: string
@@ -22,6 +26,7 @@ export interface PlayerTrack {
   playerName: string
 }
 
+// A team with its display names, colour and roster of tracked players
 export interface Team {
   name: string
   shortName: string
@@ -29,6 +34,7 @@ export interface Team {
   players: PlayerTrack[]
 }
 
+// A player's court position within a single frame
 export interface FramePlayer {
   trackId: number
   x: number  // court coords, feet
@@ -36,12 +42,14 @@ export interface FramePlayer {
   teamId: string
 }
 
+// A single sampled frame holding the timestamp and every player's position
 export interface AnalysisFrame {
   frameIndex: number  // index into the source video
   t: number           // timestamp in seconds (frameIndex / fps)
   players: FramePlayer[]
 }
 
+// Pixel and feet metadata describing how the rendered court image maps to court coordinates
 export interface CourtMeta {
   imageUrl: string | null
   widthPx: number
@@ -52,6 +60,7 @@ export interface CourtMeta {
   courtWidthFt: number   // y range = [0, courtWidthFt]
 }
 
+// The full analysis payload for one video, covering teams, shots, tracks and rendered assets
 export interface VideoAnalysis {
   videoId: string
   gameLabel: string
@@ -74,6 +83,7 @@ export interface VideoAnalysis {
   annotatedVideoUrl?: string
 }
 
+// The active filters narrowing which shots are shown and the court mode
 export interface ShotFilters {
   teamId: string | null
   playerTrackId: number | null
@@ -81,6 +91,7 @@ export interface ShotFilters {
   courtMode: CourtMode
 }
 
+// Computed shooting summary for a single team
 export interface TeamStats {
   teamId: string
   teamName: string
@@ -99,24 +110,3 @@ export interface TeamStats {
   points: number
 }
 
-export interface PlayerStats {
-  trackId: number
-  playerName: string
-  jerseyNumber: string
-  teamId: string
-  teamName: string
-  color: string
-  totalShots: number
-  makes: number
-  misses: number
-  fgPercent: number
-  threePointAttempts: number
-  threePointMakes: number
-  threePPercent: number
-  twoPointAttempts: number
-  twoPointMakes: number
-  twoPPercent: number
-}
-
-export type SortColumn = keyof Pick<PlayerStats, 'playerName' | 'totalShots' | 'fgPercent' | 'threePPercent' | 'twoPPercent' | 'makes'>
-export type SortDirection = 'asc' | 'desc'

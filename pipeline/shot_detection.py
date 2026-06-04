@@ -21,12 +21,14 @@ per-tracker observations over a lookback window instead of picking a single best
 
 from __future__ import annotations
 
+# Imports for grouping, typing, arrays, and tabular trajectory handling.
 from collections import defaultdict
 from typing import Any
 
 import numpy as np
 import pandas as pd
 
+# SciPy's smoothing filter is optional, so fall back gracefully if it isn't installed.
 try:
     from scipy.signal import savgol_filter  # type: ignore
     SCIPY_AVAILABLE = True
@@ -34,11 +36,13 @@ except ImportError:
     SCIPY_AVAILABLE = False
 
 
+# Class ids from Abdo's detector, matching the player-detection module.
 CLASS_BALL = 0
 CLASS_BALL_IN_BASKET = 1
 CLASS_PLAYER = 3
 CLASS_RIM = 5
 
+# Tuning thresholds for trajectory smoothing, shot windows, and shooter matching.
 # Defaults copied from the notebook. These are the first knobs to tune on a new
 # broadcast angle — exposed via `detect_shots(..., config=...)` if needed later.
 MAX_BALL_GAP = 8
@@ -61,32 +65,38 @@ MAX_SHOOTER_DISTANCE_PX = 170
 
 # --- small helpers ----------------------------------------------------------
 
+# Straight-line distance between two points, or infinity if either is missing.
 def _euclidean(a, b) -> float:
     if a is None or b is None:
         return float("inf")
     return float(np.linalg.norm(np.array(a, dtype=float) - np.array(b, dtype=float)))
 
 
+# Centre point of a bounding box.
 def _bbox_center(bbox) -> tuple[float, float]:
     x1, y1, x2, y2 = map(float, bbox)
     return (0.5 * (x1 + x2), 0.5 * (y1 + y2))
 
 
+# Approximate upper-body point of a player box, used as the ball-holding anchor.
 def _bbox_upper_body_center(bbox) -> tuple[float, float]:
     x1, y1, x2, y2 = map(float, bbox)
     return (0.5 * (x1 + x2), y1 + 0.35 * (y2 - y1))
 
 
+# Width and height of a bounding box.
 def _bbox_wh(bbox) -> tuple[float, float]:
     x1, y1, x2, y2 = map(float, bbox)
     return max(0.0, x2 - x1), max(0.0, y2 - y1)
 
 
+# Pixel area of a bounding box.
 def _bbox_area(bbox) -> float:
     w, h = _bbox_wh(bbox)
     return w * h
 
 
+# Split a sorted index array into runs of consecutive values.
 def _contiguous_runs(indices: np.ndarray) -> list[np.ndarray]:
     if len(indices) == 0:
         return []
@@ -94,6 +104,7 @@ def _contiguous_runs(indices: np.ndarray) -> list[np.ndarray]:
     return [run for run in np.split(indices, splits) if len(run)]
 
 
+# Smooth a noisy 1D track, using Savitzky-Golay when available and a rolling median otherwise.
 def _smooth_values(values: np.ndarray, window: int, poly: int = 2) -> np.ndarray:
     values = np.asarray(values, dtype=float)
     out = values.copy()
@@ -116,6 +127,7 @@ def _smooth_values(values: np.ndarray, window: int, poly: int = 2) -> np.ndarray
     return out
 
 
+# Linearly fill short gaps between valid observations and flag the filled-in rows.
 def _interpolate_short_gaps(
     df: pd.DataFrame, x_col: str, y_col: str, max_gap: int, flag_col: str
 ) -> pd.DataFrame:
@@ -142,6 +154,7 @@ def _interpolate_short_gaps(
 
 # --- ball / rim track builders ---------------------------------------------
 
+# Pick the most plausible ball detection in a frame, scoring on confidence, shape and motion.
 def _select_best_ball_detection(frame_dets: list[dict], prev_xy=None) -> dict | None:
     candidates = [d for d in frame_dets if int(d["class_id"]) in (CLASS_BALL, CLASS_BALL_IN_BASKET)]
     if not candidates:
@@ -164,6 +177,7 @@ def _select_best_ball_detection(frame_dets: list[dict], prev_xy=None) -> dict | 
     return scored[0][1]
 
 
+# Pick the most plausible rim detection in a frame, penalising big jumps from the last position.
 def _select_best_rim_detection(frame_dets: list[dict], prev_xy=None) -> dict | None:
     candidates = [d for d in frame_dets if int(d["class_id"]) == CLASS_RIM]
     if not candidates:
@@ -178,6 +192,7 @@ def _select_best_rim_detection(frame_dets: list[dict], prev_xy=None) -> dict | N
     return scored[0][1]
 
 
+# Build a per-frame ball trajectory, then reject outliers, fill gaps, and smooth it.
 def _build_ball_track(detections_by_frame: dict[int, list[dict]], frame_count: int) -> pd.DataFrame:
     rows = []
     prev_xy = None
@@ -199,6 +214,7 @@ def _build_ball_track(detections_by_frame: dict[int, list[dict]], frame_count: i
 
     df = pd.DataFrame(rows)
 
+    # Post-process the raw track: reject jumps, interpolate gaps, then smooth.
     # Reject single-frame jumps from the last accepted observation.
     last_frame, last_xy = None, None
     for idx, row in df[df["x"].notna()].iterrows():
@@ -218,6 +234,7 @@ def _build_ball_track(detections_by_frame: dict[int, list[dict]], frame_count: i
     return df
 
 
+# Build a per-frame rim trajectory, then fill gaps and smooth it.
 def _build_rim_track(detections_by_frame: dict[int, list[dict]], frame_count: int) -> pd.DataFrame:
     rows = []
     prev_xy = None
@@ -248,6 +265,7 @@ def _build_rim_track(detections_by_frame: dict[int, list[dict]], frame_count: in
 
 # --- shot candidate detection ----------------------------------------------
 
+# Group nearby frame numbers into clusters so each ball-near-rim event is treated as one.
 def _cluster_frames(frames: list[int], max_gap: int = 5) -> list[list[int]]:
     frames = sorted(set(int(f) for f in frames))
     if not frames:
@@ -261,6 +279,7 @@ def _cluster_frames(frames: list[int], max_gap: int = 5) -> list[list[int]]:
     return clusters
 
 
+# Merge ball and rim tracks and add the per-frame ball-to-rim distance.
 def _add_ball_rim_distance(ball_track: pd.DataFrame, rim_track: pd.DataFrame) -> pd.DataFrame:
     df = ball_track[["frame", "x", "y", "conf", "is_interpolated", "is_outlier"]].merge(
         rim_track[["frame", "rim_x", "rim_y", "rim_w", "rim_h", "rim_conf"]],
@@ -275,6 +294,7 @@ def _add_ball_rim_distance(ball_track: pd.DataFrame, rim_track: pd.DataFrame) ->
     return df
 
 
+# Estimate when the ball was released by finding the start of its upward flight.
 def _estimate_release_frame(distance_df: pd.DataFrame, start_frame: int, rim_frame: int) -> int:
     pre = distance_df[
         (distance_df["frame"] >= start_frame)
@@ -301,6 +321,7 @@ def _estimate_release_frame(distance_df: pd.DataFrame, start_frame: int, rim_fra
     return int(frames[release_idx])
 
 
+# Measure how far the ball rose before the rim and fell after it, to test for a shot arc.
 def _candidate_motion_stats(window_df: pd.DataFrame, rim_frame: int) -> dict:
     valid = window_df[window_df["x"].notna() & window_df["y"].notna()].copy()
     if len(valid) == 0:
@@ -312,6 +333,7 @@ def _candidate_motion_stats(window_df: pd.DataFrame, rim_frame: int) -> dict:
     return {"upward_motion_px": upward, "downward_motion_px": downward, "valid_frames": int(len(valid))}
 
 
+# Check whether any ball-in-basket detection appears within a frame range.
 def _has_ball_in_basket_signal(
     detections_by_frame: dict[int, list[dict]], start_frame: int, end_frame: int, frame_count: int
 ) -> bool:
@@ -321,6 +343,7 @@ def _has_ball_in_basket_signal(
     return False
 
 
+# Find shot candidates where the ball nears the rim with a plausible arc, with a cooldown between shots.
 def _detect_shot_candidates(
     ball_track: pd.DataFrame,
     rim_track: pd.DataFrame,
@@ -388,6 +411,7 @@ def _detect_shot_candidates(
 
 # --- make/miss classification ----------------------------------------------
 
+# Fetch the rim track row for a frame, or None if the rim wasn't located there.
 def _rim_row_at(rim_track: pd.DataFrame, frame: int) -> pd.Series | None:
     if frame < 0 or frame >= len(rim_track):
         return None
@@ -397,6 +421,7 @@ def _rim_row_at(rim_track: pd.DataFrame, frame: int) -> pd.Series | None:
     return row
 
 
+# Work out a rectangular zone around the hoop for a frame, used as the make/miss target area.
 def _hoop_zone(rim_track: pd.DataFrame, frame: int) -> tuple[float, float, float, float] | None:
     row = _rim_row_at(rim_track, frame)
     if row is None:
@@ -408,6 +433,7 @@ def _hoop_zone(rim_track: pd.DataFrame, frame: int) -> tuple[float, float, float
     return (float(row["rim_x"]), float(row["rim_y"]), width, height)
 
 
+# Collect frames near the rim where a ball-in-basket detection sits inside the hoop zone.
 def _ball_in_basket_frames(
     rim_track: pd.DataFrame,
     detections_by_frame: dict[int, list[dict]],
@@ -429,6 +455,7 @@ def _ball_in_basket_frames(
     return frames
 
 
+# Test whether the descending ball crossed the hoop plane within the rim width.
 def _crossed_hoop_plane(
     ball_track: pd.DataFrame, rim_track: pd.DataFrame, candidate: dict, frame_count: int
 ) -> bool:
@@ -460,6 +487,7 @@ def _crossed_hoop_plane(
     return False
 
 
+# Classify a shot candidate as make, miss, or unknown using basket signals and trajectory.
 def _classify_shot_result(
     ball_track: pd.DataFrame,
     rim_track: pd.DataFrame,
@@ -476,6 +504,7 @@ def _classify_shot_result(
             "result_reason": "rim unavailable", "ball_in_basket_frames": [],
         }
 
+    # Strongest evidence: an explicit ball-in-basket detection near the rim means a make.
     bib_frames = _ball_in_basket_frames(rim_track, detections_by_frame, candidate, frame_count)
     if bib_frames:
         return {
@@ -484,6 +513,7 @@ def _classify_shot_result(
             "ball_in_basket_frames": bib_frames,
         }
 
+    # Next best: a descending ball passing through the hoop plane also counts as a make.
     if _crossed_hoop_plane(ball_track, rim_track, candidate, frame_count):
         return {
             "result": "make", "result_confidence": 0.78,
@@ -491,6 +521,7 @@ def _classify_shot_result(
             "ball_in_basket_frames": [],
         }
 
+    # Otherwise look at the ball's path after the rim to decide miss versus unknown.
     post = distance_df[
         (distance_df["frame"] > rim_frame)
         & (distance_df["frame"] <= min(frame_count - 1, rim_frame + SHOT_WINDOW_FRAMES // 2))
@@ -518,6 +549,7 @@ def _classify_shot_result(
             for _, r in last.iterrows()
         )
 
+    # If the ball drifted away, dropped below the rim, and stayed outside the zone, call it a miss.
     if moved_away and below_rim and outside_zone:
         return {
             "result": "miss", "result_confidence": 0.70,
@@ -533,6 +565,7 @@ def _classify_shot_result(
 
 # --- shooter assignment -----------------------------------------------------
 
+# Get the ball position at a frame, falling back to the nearest valid frame within a small gap.
 def _ball_xy_at(ball_track: pd.DataFrame, frame: int, max_nearest_gap: int = 3) -> tuple[float, float] | None:
     frame = int(frame)
     if 0 <= frame < len(ball_track):
@@ -553,6 +586,7 @@ def _ball_xy_at(ball_track: pd.DataFrame, frame: int, max_nearest_gap: int = 3) 
     return (float(row["x"]), float(row["y"]))
 
 
+# Convert shooter-to-ball distance into a rough confidence score.
 def _shooter_confidence(distance_px: float | None) -> float:
     if distance_px is None or not np.isfinite(distance_px):
         return 0.0
@@ -565,6 +599,7 @@ def _shooter_confidence(distance_px: float | None) -> float:
     return 0.20
 
 
+# Work out which tracked player most likely took the shot, aggregated over the lookback window.
 def _assign_likely_shooter(
     ball_track: pd.DataFrame,
     detections_by_frame: dict[int, list[dict]],
@@ -606,6 +641,7 @@ def _assign_likely_shooter(
     # 1–2 frames) without being so strict that short clips fall through.
     min_observations = max(3, SHOOTER_LOOKBACK_FRAMES // 3)
 
+    # Score each track by combined closeness and keep the best one above the observation floor.
     best = None
     for tid, observations in per_track.items():
         if len(observations) < min_observations:
@@ -648,6 +684,7 @@ def _assign_likely_shooter(
                         "bbox": obs["bbox"],
                     }
 
+    # Give up if no player was close enough, otherwise report the chosen shooter's details.
     if best is None or best["distance_px"] > MAX_SHOOTER_DISTANCE_PX:
         return {
             "shooter_track_id": None, "shooter_distance_px": None,
@@ -665,6 +702,7 @@ def _assign_likely_shooter(
 
 # --- public entrypoint ------------------------------------------------------
 
+# Public entrypoint that runs the full shot pipeline and returns one event per shot.
 def detect_shots(
     detection_records: list[dict],
     frame_count: int,
@@ -679,10 +717,12 @@ def detect_shots(
     Returns a list of event dicts (one per shot), each carrying enough info for the
     bridge to project shooter coords into court space and emit the GUI's `Shot` shape.
     """
+    # Group the flat detection records by frame for quick lookup.
     detections_by_frame: dict[int, list[dict]] = defaultdict(list)
     for row in detection_records:
         detections_by_frame[int(row["frame"])].append(row)
 
+    # Build the smoothed ball and rim trajectories.
     ball_track = _build_ball_track(detections_by_frame, frame_count)
     rim_track = _build_rim_track(detections_by_frame, frame_count)
 
@@ -690,6 +730,7 @@ def detect_shots(
         ball_track, rim_track, detections_by_frame, frame_count
     )
 
+    # For each candidate, classify the result, find the shooter, and assemble the event dict.
     events: list[dict] = []
     for cand in candidates:
         result = _classify_shot_result(

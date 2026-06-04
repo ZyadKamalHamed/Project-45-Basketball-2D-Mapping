@@ -15,6 +15,7 @@ Notebook cell references:
 
 from __future__ import annotations
 
+# Imports for typing, arrays, detection handling, and the YOLO model.
 from typing import Any
 
 import numpy as np
@@ -36,6 +37,7 @@ CLASS_RIM = 5
 KEEP_CLASSES_FOR_SHOT_DETECTION = (CLASS_BALL, CLASS_BALL_IN_BASKET, CLASS_PLAYER, CLASS_RIM)
 
 
+# Load the trained player-detection YOLO model from a weights file.
 def load_player_model(weights_path: str) -> YOLO:
     """Load the trained Player_detection.pt model.
 
@@ -45,6 +47,7 @@ def load_player_model(weights_path: str) -> YOLO:
     return YOLO(str(weights_path))
 
 
+# Detect and track objects on a single frame using BoT-SORT.
 def track_frame(
     player_model: YOLO,
     frame: np.ndarray,
@@ -70,18 +73,21 @@ def track_frame(
     return sv.Detections.from_ultralytics(result)
 
 
+# Keep only the player-class detections.
 def filter_to_players(detections: sv.Detections) -> sv.Detections:
     """Keep only detections of the player class. Mirrors Player-Detection-v2 cell 31's
     class filter."""
     return detections[detections.class_id == CLASS_PLAYER]
 
 
+# Keep only the classes that feed into shot detection.
 def filter_to_shot_detection_classes(detections: sv.Detections) -> sv.Detections:
     """Keep ball / ball-in-basket / player / rim. Used when serialising the per-frame
     detection log that gets fed into `pipeline.shot_detection.detect_shots`."""
     return detections[np.isin(detections.class_id, list(KEEP_CLASSES_FOR_SHOT_DETECTION))]
 
 
+# Turn one detection into the plain dict shape shot detection expects.
 def detection_to_record(
     detections: sv.Detections,
     index: int,

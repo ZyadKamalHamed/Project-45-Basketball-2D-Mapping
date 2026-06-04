@@ -1,9 +1,12 @@
+// Shared team stats type
 import { TeamStats } from '@/types/basketball'
 
+// Props taking a single team's computed stats
 interface Props {
   stats: TeamStats
 }
 
+// Glass card summarising one team's points, shooting percentages and shot counts
 export function TeamStatCard({ stats }: Props) {
   return (
     <div className="glass-panel glass-mount flex-1 min-w-0 p-6">
@@ -82,6 +85,7 @@ export function TeamStatCard({ stats }: Props) {
   )
 }
 
+// Larger stat block used for the shooting percentage row
 function BigStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
@@ -101,6 +105,7 @@ function BigStat({ label, value }: { label: string; value: string }) {
   )
 }
 
+// Smaller stat block used for the secondary shots/makes/misses row
 function MiniStat({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
     <div>

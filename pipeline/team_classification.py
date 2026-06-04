@@ -17,6 +17,7 @@ Two helpers built on top of that for the bridge:
 
 from __future__ import annotations
 
+# Imports for typing, image handling, arrays, the device check, and the team classifier.
 from dataclasses import dataclass
 from typing import Any, Sequence
 
@@ -32,6 +33,7 @@ from sports.common.team import TeamClassifier  # type: ignore[import-not-found]
 JERSEY_CROP_FACTOR = 0.4
 
 
+# Wraps a fitted classifier so the darker-jersey cluster is always team 0.
 @dataclass(frozen=True)
 class AnchoredTeamClassifier:
     """Wraps a fitted TeamClassifier with a deterministic cluster→team mapping.
@@ -46,9 +48,11 @@ class AnchoredTeamClassifier:
     classifier: TeamClassifier
     swap: bool  # True → swap raw 0↔1 to enforce darker=0
 
+    # Map a raw cluster id to the anchored team id, flipping it when needed.
     def _anchor(self, raw: int) -> int:
         return (1 - raw) if self.swap else raw
 
+    # Predict an anchored team id for each jersey crop.
     def predict(self, crops: Sequence[np.ndarray]) -> list[int]:
         """Predict an anchored team id (0 or 1) for each crop."""
         if not crops:
@@ -57,6 +61,7 @@ class AnchoredTeamClassifier:
         return [self._anchor(int(t)) for t in raw]
 
 
+# Average grayscale brightness across a list of jersey crops.
 def _mean_brightness(crops: Sequence[np.ndarray]) -> float:
     """Mean grayscale brightness across a list of BGR crops (0..255)."""
     if not crops:
@@ -65,6 +70,7 @@ def _mean_brightness(crops: Sequence[np.ndarray]) -> float:
     return sum(means) / len(means)
 
 
+# Fit the classifier and decide the brightness-based cluster mapping.
 def fit_anchored(crops: Sequence[np.ndarray], device: str | None = None) -> AnchoredTeamClassifier:
     """Fit a TeamClassifier and anchor cluster labels by jersey brightness.
 
@@ -73,6 +79,7 @@ def fit_anchored(crops: Sequence[np.ndarray], device: str | None = None) -> Anch
     """
     if not crops:
         raise ValueError("fit_anchored requires at least one crop")
+    # Pick a device and fit the underlying TeamClassifier on the crops.
     dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
     clf = TeamClassifier(device=dev)
     clf.fit(list(crops))
@@ -89,6 +96,7 @@ def fit_anchored(crops: Sequence[np.ndarray], device: str | None = None) -> Anch
     return AnchoredTeamClassifier(classifier=clf, swap=swap)
 
 
+# Sample jersey crops across a video to use as fitting data for the classifier.
 def collect_fit_crops(
     video_path: str | None = None,
     detector: Any = None,
@@ -108,6 +116,7 @@ def collect_fit_crops(
     if video_path is None or detector is None:
         raise ValueError("video_path and detector are required")
 
+    # Walk the video at a fixed stride, detect players, and crop each torso.
     crops: list[np.ndarray] = []
     frame_generator = sv.get_video_frames_generator(str(video_path), stride=stride)
     for frame in frame_generator:
@@ -119,6 +128,7 @@ def collect_fit_crops(
     return crops
 
 
+# Re-read a shooter's team straight from their jersey at the release frame.
 def predict_at_release_frame(
     anchored: AnchoredTeamClassifier,
     video_path: str,
@@ -135,6 +145,7 @@ def predict_at_release_frame(
     """
     if shooter_bbox is None:
         return None
+    # Seek to the release frame and grab that single frame.
     capture = cv2.VideoCapture(str(video_path))
     try:
         capture.set(cv2.CAP_PROP_POS_FRAMES, int(release_frame))
@@ -144,6 +155,7 @@ def predict_at_release_frame(
     if not ok or frame is None:
         return None
 
+    # Tighten the box to the torso, crop it, and classify the jersey.
     crop_box = sv.scale_boxes(xyxy=np.array([shooter_bbox], dtype=float), factor=crop_factor)[0]
     crop = sv.crop_image(frame, crop_box)
     if crop is None or crop.size == 0:

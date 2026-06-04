@@ -1,9 +1,11 @@
 'use client'
 
+// React hooks, the portal helper for the tooltip and the shared shot and player types
 import { useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { Shot, PlayerTrack } from '@/types/basketball'
 
+// Props for a single shot marker, including its SVG position and shooter details
 interface Props {
   shot: Shot
   svgX: number
@@ -14,20 +16,25 @@ interface Props {
   index?: number
 }
 
+// Cursor position used to place the hover tooltip
 interface TooltipState {
   x: number
   y: number
 }
 
+// Colours used for made and missed shot markers
 const MADE_COLOR = '#22d65f'
 const MISSED_COLOR = '#ff6b6b'
 
+// Renders one shot as an O or X on the court with a hover tooltip
 export function ShotMarker({ shot, svgX, svgY, player, teamColor, teamName, index = 0 }: Props) {
+  // Track the tooltip position and derive the marker colour and shooter label
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const made = shot.result === 'made'
   const color = made ? MADE_COLOR : MISSED_COLOR
   const label = player?.playerName ?? `Player #${shot.shooterTrackId}`
 
+  // Show, move and hide the tooltip in response to mouse events
   const handleEnter = useCallback((e: React.MouseEvent) => {
     setTooltip({ x: e.clientX, y: e.clientY })
   }, [])
@@ -92,6 +99,7 @@ export function ShotMarker({ shot, svgX, svgY, player, teamColor, teamName, inde
   )
 }
 
+// Floating tooltip showing the shooter, team and shot details, flipped to stay on screen
 function ShotTooltip({
   x,
   y,
@@ -107,6 +115,7 @@ function ShotTooltip({
   teamColor: string
   teamName: string
 }) {
+  // Position the tooltip near the cursor, flipping left when close to the right edge
   const flipLeft = x > window.innerWidth / 2
   const left = flipLeft ? x - 200 : x + 16
   const top = y - 8
@@ -147,6 +156,7 @@ function ShotTooltip({
   )
 }
 
+// Single label/value row inside the tooltip
 function Row({
   label,
   value,
@@ -171,6 +181,7 @@ function Row({
   )
 }
 
+// Capitalises the first letter of a string for display
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }

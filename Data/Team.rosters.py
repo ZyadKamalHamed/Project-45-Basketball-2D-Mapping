@@ -1,4 +1,5 @@
 
+# Maps each NBA team's numeric id to its full club name.
 TEAM_NAMES = {
     0: "Boston Celtics",
     1: "Brooklyn Nets",
@@ -32,6 +33,7 @@ TEAM_NAMES = {
     29: "San Antonio Spurs",
     
 }
+# Maps each team name to its primary jersey colour as a hex code, grouped by division.
 TEAM_COLORS = {
     # Atlantic Division
     "Boston Celtics": "#007A33",

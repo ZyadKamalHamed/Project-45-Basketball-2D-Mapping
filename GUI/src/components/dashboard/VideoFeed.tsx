@@ -1,9 +1,11 @@
 'use client'
 
+// React hooks, upload icons and the client helper that posts the video to the analysis bridge
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { UploadCloud, X, AlertCircle, FileWarning } from 'lucide-react'
 import { uploadVideo } from '@/lib/analysis-client'
 
+// Props for the video feed, including playback time callback and the annotated video URL
 interface Props {
   gameLabel: string
   onAnalysisStarted?: (analysisId: string) => void
@@ -14,15 +16,19 @@ interface Props {
   annotatedUrl?: string | null
 }
 
+// Accepted file extensions and MIME types for the upload input
 const ACCEPTED = '.mp4,.mov,video/mp4,video/quicktime'
 
+// Discriminated union describing the upload and playback lifecycle
 type UploadState =
   | { kind: 'idle' }
   | { kind: 'uploading'; fileName: string }
   | { kind: 'ready'; fileName: string; objectUrl: string; analysisId: string | null }
   | { kind: 'error'; message: string }
 
+// Handles uploading game footage, previewing it and swapping to the annotated render
 export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotatedUrl = null }: Props) {
+  // Upload lifecycle state, drag styling, decode error code and refs for the input, video and blob URL
   const [state, setState] = useState<UploadState>({ kind: 'idle' })
   const [dragActive, setDragActive] = useState(false)
   // Set to a non-null code when the browser refuses to decode the uploaded file
@@ -37,6 +43,7 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotate
   // <video> element pointing at a dead blob.
   const activeUrlRef = useRef<string | null>(null)
 
+  // Revoke the active blob URL when the component unmounts to free memory
   useEffect(() => {
     return () => {
       if (activeUrlRef.current) {
@@ -71,6 +78,7 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotate
     }
   }, [state.kind, onTimeUpdate])
 
+  // Create a local preview URL, upload the file to the bridge and move to the ready state
   const handleFile = useCallback(
     async (file?: File | null) => {
       if (!file) return
@@ -97,6 +105,7 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotate
     [onAnalysisStarted],
   )
 
+  // Clear the current upload and return the feed to its idle drop-zone state
   const reset = useCallback(() => {
     if (activeUrlRef.current) {
       URL.revokeObjectURL(activeUrlRef.current)
@@ -107,6 +116,7 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotate
     if (inputRef.current) inputRef.current.value = ''
   }, [])
 
+  // Before a file is ready, render the click-or-drag drop zone with upload and error states
   if (state.kind === 'idle' || state.kind === 'uploading' || state.kind === 'error') {
     const uploading = state.kind === 'uploading'
     return (
@@ -193,8 +203,10 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotate
   // Source priority: prefer the server-rendered annotated MP4 once analysis finishes,
   // otherwise fall back to the local blob URL. The `key` on the <video> element forces
   // a fresh DOM element when the src changes so the browser actually picks up the swap.
+  // Choose the playback source, preferring the annotated render over the local blob
   const playbackSrc = annotatedUrl ?? state.objectUrl
   const isAnnotated = playbackSrc === annotatedUrl
+  // Render the header strip and the video, falling back to a placeholder if it can't decode
   return (
     <div className="glass-mount w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-black/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.45)]">
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2.5">
@@ -249,7 +261,9 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotate
 // 1 = MEDIA_ERR_ABORTED, 2 = NETWORK, 3 = DECODE, 4 = SRC_NOT_SUPPORTED.
 // In practice, all three of 2/3/4 mean "browser can't decode this file" — the analysis
 // backend still works, only the in-browser preview is unavailable.
+// Placeholder shown when the browser can't decode the file, mapping the error code to a message
 function UnplayablePlaceholder({ code }: { code: number }) {
+  // Pick a headline and detail message based on the media error code
   const headline =
     code === 4
       ? "Browser can't play this file"

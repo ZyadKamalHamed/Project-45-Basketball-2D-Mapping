@@ -21,6 +21,7 @@ Notebook cell references:
 
 from __future__ import annotations
 
+# Standard library and third-party imports for arrays, detections, and the homography helper.
 from dataclasses import dataclass
 from typing import Any
 
@@ -34,6 +35,7 @@ from sports.common.view import ViewTransformer  # type: ignore[import-not-found]
 MIN_VISIBLE_VERTICES = 4
 
 
+# Holds the court vertices the pose model detected on one frame.
 @dataclass
 class CourtKeypoints:
     """Result of running the CVM pose model on a single frame."""
@@ -41,11 +43,13 @@ class CourtKeypoints:
     landmarks_mask: np.ndarray   # bool array over the 33 court vertices
     frame_landmarks: np.ndarray  # (N, 2) image-space points for the visible vertices
 
+    # Count how many of the 33 court vertices were seen with enough confidence.
     @property
     def visible_count(self) -> int:
         return int(np.count_nonzero(self.landmarks_mask))
 
 
+# Run the CVM pose model on a frame and keep only the confident court vertices.
 def detect_court_keypoints(
     cvm_model: Any,
     frame: np.ndarray,
@@ -59,10 +63,12 @@ def detect_court_keypoints(
     keep only vertices above ``anchor_conf``. Returns None when the model returned
     no keypoints at all (e.g. crowd shots, replays).
     """
+    # Run inference and wrap the raw output as supervision keypoints.
     result = cvm_model.predict(frame, conf=conf, verbose=False)[0]
     key_points = sv.KeyPoints.from_ultralytics(result)
     if key_points.confidence is None or len(key_points.confidence) == 0:
         return None
+    # Keep only vertices above the anchor threshold and bail out if too few remain.
     landmarks_mask = key_points.confidence[0] > anchor_conf
     if int(np.count_nonzero(landmarks_mask)) < MIN_VISIBLE_VERTICES:
         return None
@@ -70,6 +76,7 @@ def detect_court_keypoints(
     return CourtKeypoints(landmarks_mask=landmarks_mask, frame_landmarks=frame_landmarks)
 
 
+# Build the image-to-court homography from the visible court vertices.
 def build_homography(
     court_config: Any,
     keypoints: CourtKeypoints,
@@ -84,6 +91,7 @@ def build_homography(
     return ViewTransformer(source=keypoints.frame_landmarks, target=court_landmarks)
 
 
+# Project every player's feet position from image space into court coordinates.
 def project_players_to_court(
     transformer: ViewTransformer,
     player_detections: sv.Detections,
@@ -98,6 +106,7 @@ def project_players_to_court(
     return transformer.transform_points(points=anchors)
 
 
+# Project a single image-space point into court coordinates.
 def project_point_to_court(
     transformer: ViewTransformer,
     image_xy: tuple[float, float],

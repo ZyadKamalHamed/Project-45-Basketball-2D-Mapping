@@ -1,8 +1,10 @@
 'use client'
 
+// React context helpers and the filter-related types
 import { createContext, useContext, useReducer, Dispatch, ReactNode } from 'react'
 import { ShotFilters, ShotType, CourtMode } from '@/types/basketball'
 
+// The set of actions that can update the active shot filters
 type FilterAction =
   | { type: 'SET_TEAM'; payload: string | null }
   | { type: 'SET_PLAYER'; payload: number | null }
@@ -10,6 +12,7 @@ type FilterAction =
   | { type: 'SET_COURT_MODE'; payload: CourtMode }
   | { type: 'RESET' }
 
+// The default filter state with nothing narrowed down and the half-court view selected
 const initial: ShotFilters = {
   teamId: null,
   playerTrackId: null,
@@ -17,6 +20,7 @@ const initial: ShotFilters = {
   courtMode: 'half',
 }
 
+// Reducer that applies each filter action to the current filter state
 function filterReducer(state: ShotFilters, action: FilterAction): ShotFilters {
   switch (action.type) {
     case 'SET_TEAM':
@@ -34,9 +38,11 @@ function filterReducer(state: ShotFilters, action: FilterAction): ShotFilters {
   }
 }
 
+// Separate contexts for the filter state and its dispatch function
 const FilterStateCtx = createContext<ShotFilters>(initial)
 const FilterDispatchCtx = createContext<Dispatch<FilterAction>>(() => null)
 
+// Provider that holds the filter state and exposes it to the component tree
 export function FilterProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(filterReducer, initial)
   return (
@@ -48,10 +54,12 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// Hook to read the current filter state
 export function useFilters() {
   return useContext(FilterStateCtx)
 }
 
+// Hook to dispatch filter actions
 export function useFilterDispatch() {
   return useContext(FilterDispatchCtx)
 }

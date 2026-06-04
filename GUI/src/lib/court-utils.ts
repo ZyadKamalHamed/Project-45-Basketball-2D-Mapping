@@ -5,6 +5,7 @@ import { CourtMode } from '@/types/basketball'
 // Basket at top: (250, 52.5) — 5.25ft from baseline
 // y=0 → baseline (near basket), y=1 → half-court line
 
+// Fixed court dimensions and landmark positions in SVG units, at 10px per foot
 export const COURT = {
   WIDTH: 500,
   HALF_HEIGHT: 470,
@@ -25,6 +26,7 @@ export const COURT = {
   BACKBOARD_HALF: 30,        // 3ft each side
 }
 
+// Converts normalised court coordinates into SVG pixel coordinates for the chosen court mode
 export function courtToSvg(
   pt: { x: number; y: number },
   courtMode: CourtMode,
@@ -44,10 +46,12 @@ export function courtToSvg(
   return { x: svgX, y: svgY }
 }
 
+// Returns the SVG height for the current court mode, half or full court
 export function getCourtHeight(courtMode: CourtMode): number {
   return courtMode === 'full' ? COURT.FULL_HEIGHT : COURT.HALF_HEIGHT
 }
 
+// Computes the perceived brightness of a hex colour on a 0 to 1 scale
 export function luminance(hex: string): number {
   const r = parseInt(hex.slice(1, 3), 16)
   const g = parseInt(hex.slice(3, 5), 16)
@@ -55,6 +59,7 @@ export function luminance(hex: string): number {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255
 }
 
+// Picks black or white text for the best contrast against a given background colour
 export function contrastText(hex: string): '#000000' | '#ffffff' {
   return luminance(hex) > 0.5 ? '#000000' : '#ffffff'
 }

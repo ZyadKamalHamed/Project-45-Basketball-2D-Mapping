@@ -1,5 +1,6 @@
 'use client'
 
+// React hooks, the filter context provider, dashboard components and helpers
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FilterProvider } from '@/context/FilterContext'
 import { CourtMap } from '@/components/dashboard/CourtMap'
@@ -11,10 +12,12 @@ import { computeTeamStats } from '@/lib/stats-utils'
 import { pollResult } from '@/lib/analysis-client'
 import type { VideoAnalysis } from '@/types/basketball'
 
+// Main dashboard page that ties the video, court map, stats and shot log together
 export default function HomePage() {
   const { analysis, analysisId, status, message, setAnalysisId } = useAnalysis()
   const [currentTime, setCurrentTime] = useState(0)
 
+  // Pull the pieces of the analysis payload, falling back to safe empties while loading
   const teams = analysis?.teams ?? {}
   const shots = analysis?.shots ?? []
   const playerTracks = analysis?.playerTracks ?? []
@@ -23,6 +26,7 @@ export default function HomePage() {
   const gameLabel = analysis?.gameLabel ?? 'No clip uploaded'
   const courtImageUrl = courtImageFor(analysisId, status, analysis)
 
+  // Derive team stats and work out which panels should be shown for the current status
   const teamStats = useMemo(() => computeTeamStats(shots, teams), [shots, teams])
   const hasTeams = Object.keys(teams).length > 0
   const showCourt = status === 'ready' && (courtImageUrl !== null || playerTracks.length > 0)
@@ -98,6 +102,7 @@ export default function HomePage() {
   )
 }
 
+// Works out which court image URL to use, preferring the server payload over the conventional path
 function courtImageFor(
   analysisId: string | null,
   status: AnalysisStatus,
@@ -111,6 +116,7 @@ function courtImageFor(
   return `/api/analyze/result/${analysisId}/court`
 }
 
+// Empty-state panel shown in place of the court map, with copy tailored to each status
 function CourtPlaceholder({ status }: { status: AnalysisStatus }) {
   const lines: Record<AnalysisStatus, [string, string]> = {
     idle: ['Court map appears here', 'Upload game footage to project player positions onto the court.'],
@@ -132,6 +138,7 @@ function CourtPlaceholder({ status }: { status: AnalysisStatus }) {
   )
 }
 
+// Sticky top header showing the brand, game label and a live analysing or error badge
 function DashboardHeader({
   gameLabel,
   status,
@@ -179,6 +186,7 @@ function DashboardHeader({
   )
 }
 
+// The small CourtIQ basketball mark drawn as an inline SVG
 function Logo() {
   return (
     <div
@@ -208,8 +216,10 @@ function Logo() {
   )
 }
 
+// The lifecycle states an analysis can be in
 type AnalysisStatus = 'idle' | 'processing' | 'ready' | 'error'
 
+// Shape returned by the useAnalysis hook
 interface UseAnalysisReturn {
   analysis: VideoAnalysis | null
   analysisId: string | null
@@ -218,12 +228,14 @@ interface UseAnalysisReturn {
   setAnalysisId: (id: string | null) => void
 }
 
+// Hook that tracks an analysis by id and polls the backend until it is ready or fails
 function useAnalysis(): UseAnalysisReturn {
   const [analysisId, setAnalysisId] = useState<string | null>(null)
   const [analysis, setAnalysis] = useState<VideoAnalysis | null>(null)
   const [status, setStatus] = useState<AnalysisStatus>('idle')
   const [message, setMessage] = useState<string | null>(null)
 
+  // Set or clear the active analysis id and reset the related state accordingly
   const handleSetAnalysisId = useCallback((id: string | null) => {
     setAnalysisId(id)
     if (id === null) {
@@ -237,10 +249,12 @@ function useAnalysis(): UseAnalysisReturn {
     }
   }, [])
 
+  // Poll for results whenever the analysis id changes, cancelling cleanly on unmount
   useEffect(() => {
     if (!analysisId) return
     let cancelled = false
 
+    // Drive the polling loop and update status as processing, ready or error results arrive
     async function run(id: string) {
       try {
         for await (const result of pollResult(id, { intervalMs: 2000 })) {

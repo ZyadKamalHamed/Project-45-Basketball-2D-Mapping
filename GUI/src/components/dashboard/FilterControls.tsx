@@ -1,21 +1,28 @@
 'use client'
 
+// Shared team type, filter context hooks and the reset icon
 import { Team } from '@/types/basketball'
 import { useFilters, useFilterDispatch } from '@/context/FilterContext'
 import { RotateCcw } from 'lucide-react'
 
+// Props for the filter bar, taking the available teams to render team chips
 interface Props {
   teams: Record<string, Team>
 }
 
+// The three shot-type chip states the bar can be in
 type ShotTypeFilter = 'all' | '2P' | '3P'
 
+// Filter bar that lets users narrow shots by team and shot type
 export function FilterControls({ teams }: Props) {
+  // Read the current filters and the dispatcher used to update them
   const filters = useFilters()
   const dispatch = useFilterDispatch()
 
+  // Flatten the teams record into entries for rendering the team chips
   const teamEntries = Object.entries(teams)
 
+  // Whether any filter is currently set, which decides if the reset button shows
   const hasActiveFilter =
     filters.teamId !== null ||
     filters.shotType !== null
@@ -79,6 +86,7 @@ export function FilterControls({ teams }: Props) {
   )
 }
 
+// Maps the legacy shotType field onto the 2P/3P/all chip the bar displays
 function shotTypeChipValue(shotType: string | null): ShotTypeFilter {
   // The legacy shotType field stores jump/layup/dunk. We piggyback on it: layup → 2P, jump → 3P,
   // null → all. Dunk falls under 2P. This keeps the existing CourtMap filter working without a
@@ -88,6 +96,7 @@ function shotTypeChipValue(shotType: string | null): ShotTypeFilter {
   return '2P'
 }
 
+// Translates a chip selection back into the dispatched shotType filter value
 function applyShotTypeChip(
   chip: ShotTypeFilter,
   dispatch: ReturnType<typeof useFilterDispatch>,
@@ -103,6 +112,7 @@ function applyShotTypeChip(
   }
 }
 
+// A single shot-type chip that highlights when it matches the current selection
 function ShotTypeChip({
   current,
   target,
@@ -120,6 +130,7 @@ function ShotTypeChip({
   )
 }
 
+// Rounded pill container that groups related chips together
 function ChipGroup({ children }: { label?: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] p-1 backdrop-blur-md">
@@ -128,6 +139,7 @@ function ChipGroup({ children }: { label?: string; children: React.ReactNode }) 
   )
 }
 
+// Reusable toggle chip with active styling and an optional team colour dot
 function Chip({
   active,
   onClick,
@@ -168,6 +180,7 @@ function Chip({
   )
 }
 
+// Thin vertical rule separating the chip groups
 function Divider() {
   return <span className="h-5 w-px bg-[var(--border)]" />
 }

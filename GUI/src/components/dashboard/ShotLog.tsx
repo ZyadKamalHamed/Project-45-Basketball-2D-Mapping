@@ -1,8 +1,10 @@
 'use client'
 
+// React memo hook plus the shared shot and team types
 import { useMemo } from 'react'
 import { Shot, Team } from '@/types/basketball'
 
+// Props for the shot log, taking the detected shots, teams and an optional frame rate
 interface Props {
   shots: Shot[]
   teams: Record<string, Team>
@@ -14,7 +16,9 @@ interface Props {
  * Loosely inspired by `render_image_space_shot_chart` in the shot-detection notebook,
  * but text-only so the layout fits cleanly under the team stat cards.
  */
+// Tabular log component listing every detected shot with its time, team, type and result
 export function ShotLog({ shots, teams, fps = 30 }: Props) {
+  // Sort shots by frame and shape them into display rows with a formatted timestamp
   const rows = useMemo(
     () =>
       [...shots].sort((a, b) => a.frameIndex - b.frameIndex).map((s) => {
@@ -35,6 +39,7 @@ export function ShotLog({ shots, teams, fps = 30 }: Props) {
     [shots, teams, fps],
   )
 
+  // Show an empty-state message when no shots were detected for the clip
   if (rows.length === 0) {
     return (
       <div className="glass-panel glass-mount p-6">
@@ -47,9 +52,11 @@ export function ShotLog({ shots, teams, fps = 30 }: Props) {
     )
   }
 
+  // Tally made and missed shots for the summary counts in the header
   const made = rows.filter((r) => r.result === 'made').length
   const missed = rows.length - made
 
+  // Render the summary header and the full shot table
   return (
     <div className="glass-panel glass-mount p-6">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
@@ -127,6 +134,7 @@ export function ShotLog({ shots, teams, fps = 30 }: Props) {
   )
 }
 
+// Formats a number of seconds into a minutes:seconds clock string
 function formatTimestamp(seconds: number): string {
   const total = Math.max(0, seconds)
   const m = Math.floor(total / 60)
@@ -134,6 +142,7 @@ function formatTimestamp(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+// Styled heading used at the top of the shot log panel
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
     <h2
@@ -145,6 +154,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   )
 }
 
+// Table header cell with optional right alignment
 function Th({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) {
   return (
     <th
@@ -155,12 +165,14 @@ function Th({ children, align = 'left' }: { children: React.ReactNode; align?: '
   )
 }
 
+// Table body cell with optional right alignment
 function Td({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) {
   return (
     <td className={`px-4 py-3 ${align === 'right' ? 'text-right' : 'text-left'}`}>{children}</td>
   )
 }
 
+// Coloured pill showing whether a shot was made or missed
 function ResultPill({ made }: { made: boolean }) {
   return (
     <span

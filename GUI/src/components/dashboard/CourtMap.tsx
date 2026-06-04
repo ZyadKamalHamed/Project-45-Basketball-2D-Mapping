@@ -1,11 +1,13 @@
 'use client'
 
+// React hooks, shared types, filter context, court geometry helpers and the shot marker component
 import { useMemo, useState } from 'react'
 import { Shot, PlayerTrack, Team, CourtMeta } from '@/types/basketball'
 import { useFilters } from '@/context/FilterContext'
 import { COURT, courtToSvg, getCourtHeight } from '@/lib/court-utils'
 import { ShotMarker } from './ShotMarker'
 
+// Props for the court map, including optional model-rendered PNG and its pixel/feet metadata
 interface Props {
   shots: Shot[]
   playerTracks: PlayerTrack[]
@@ -16,11 +18,13 @@ interface Props {
   court?: CourtMeta | null
 }
 
+// Shared colours for the synthetic SVG court lines, background, paint and rim
 const LINE = 'rgba(255, 255, 255, 0.35)'
 const COURT_BG = 'rgba(12, 18, 38, 0.45)'
 const PAINT_BG = 'rgba(108, 140, 255, 0.18)'
 const RIM = '#ffae5b'
 
+// Main court map component that plots shots over either a model PNG or a synthetic SVG court
 export function CourtMap({
   shots,
   playerTracks,
@@ -28,14 +32,17 @@ export function CourtMap({
   imageUrl,
   court,
 }: Props) {
+  // Read the active filters and current court mode from context
   const filters = useFilters()
   const { courtMode } = filters
 
+  // Index player tracks by their track id so each shot can look up its shooter quickly
   const trackMap = useMemo(
     () => new Map(playerTracks.map(pt => [pt.trackId, pt])),
     [playerTracks],
   )
 
+  // Narrow the shots down to those matching the active team, player and shot-type filters
   const filteredShots = useMemo(() => {
     return shots.filter(s => {
       if (filters.teamId && s.shooterTeamId !== filters.teamId) return false
@@ -61,8 +68,10 @@ export function CourtMap({
     )
   }
 
+  // Work out the SVG viewbox height for the chosen half or full court mode
   const height = getCourtHeight(courtMode)
 
+  // Render the synthetic SVG court with line work, shot markers and a legend
   return (
     <div className="w-full">
       <div className="w-full" style={{ aspectRatio: `${COURT.WIDTH} / ${height}` }}>
@@ -106,6 +115,7 @@ export function CourtMap({
   )
 }
 
+// Renders the model's court PNG with an SVG overlay of shot markers aligned to the image pixels
 function ModelCourtImage({
   imageUrl,
   court,
@@ -117,8 +127,10 @@ function ModelCourtImage({
   totalTracks: number
   shots: Shot[]
 }) {
+  // Track whether the PNG failed to load so we can show a fallback message
   const [loadError, setLoadError] = useState(false)
 
+  // Show a friendly placeholder when the court render could not be loaded
   if (loadError) {
     return (
       <div className="flex h-full min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface-2)] px-6 text-center">
@@ -199,6 +211,7 @@ function ModelCourtImage({
   )
 }
 
+// Small legend entry pairing a coloured symbol with its label
 function LegendItem({ color, symbol, label }: { color: string; symbol: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5">
@@ -213,6 +226,7 @@ function LegendItem({ color, symbol, label }: { color: string; symbol: string; l
   )
 }
 
+// Draws the court outline, mirroring the half court for full-court mode and adding the centre line
 function CourtLines({ courtMode }: { courtMode: 'half' | 'full' }) {
   return (
     <>
@@ -233,7 +247,9 @@ function CourtLines({ courtMode }: { courtMode: 'half' | 'full' }) {
   )
 }
 
+// Draws all the line work for a single half court, offset vertically for the second half
 function HalfCourt({ yOffset }: { yOffset: number }) {
+  // Pre-compute the basket, key and three-point arc positions for this half
   const bx = COURT.BASKET_X
   const by = COURT.BASKET_Y + yOffset
   const keyTop = COURT.KEY_Y + yOffset
@@ -306,6 +322,7 @@ function HalfCourt({ yOffset }: { yOffset: number }) {
   )
 }
 
+// Converts a centre point, radius and angle into x/y coordinates on a circle
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = ((angleDeg - 90) * Math.PI) / 180
   return {
@@ -314,6 +331,7 @@ function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   }
 }
 
+// Builds an SVG path string for an arc between two angles around a centre point
 function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg: number) {
   const start = polarToCartesian(cx, cy, r, endDeg)
   const end = polarToCartesian(cx, cy, r, startDeg)
@@ -321,6 +339,7 @@ function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg
   return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 0 ${end.x} ${end.y}`
 }
 
+// Works out the angle where the three-point arc meets the corner three lines
 function angleForCorner(_yOffset: number) {
   const dx = COURT.BASKET_X - COURT.CORNER_THREE_X_LEFT
   const dy = COURT.CORNER_THREE_Y - COURT.BASKET_Y

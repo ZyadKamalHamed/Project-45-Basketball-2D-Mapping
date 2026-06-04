@@ -13,6 +13,7 @@ Modules:
     shot_detection        — Ilias's shot pipeline (ball+rim trajectories, make/miss).
 """
 
+# Re-export each pipeline submodule so callers can import them from the package directly.
 from . import (  # noqa: F401 — re-export for convenience
     court_mapping,
     geometry,

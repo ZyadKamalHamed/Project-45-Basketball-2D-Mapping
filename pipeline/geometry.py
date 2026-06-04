@@ -11,8 +11,10 @@ the standard 5.25 ft inside each baseline.
 
 from __future__ import annotations
 
+# Standard library import for distance maths.
 import math
 
+# Court dimensions and basket positions in feet for the NBA full court.
 # NBA full court: 94 ft long, 50 ft wide. Basket centres sit 5.25 ft inside each baseline.
 COURT_LENGTH_FT = 94.0
 COURT_WIDTH_FT = 50.0
@@ -27,6 +29,7 @@ THREE_POINT_CORNER_FT = 22.0  # corner threes are slightly closer because the si
 CORNER_LANE_HALF_WIDTH_FT = 3.0  # within 3 ft of a sideline → "corner zone"
 
 
+# Work out which basket is closest to a court point and how far away it is.
 def nearest_basket(x: float, y: float) -> tuple[tuple[float, float], float]:
     """Return (basket_xy, distance_ft) for whichever basket is closer to the point."""
     best = min(BASKETS_FT, key=lambda b: (b[0] - x) ** 2 + (b[1] - y) ** 2)
@@ -34,6 +37,7 @@ def nearest_basket(x: float, y: float) -> tuple[tuple[float, float], float]:
     return best, dist
 
 
+# Decide whether a court point counts as a three-pointer under NBA rules.
 def is_three_pointer(x: float, y: float) -> bool:
     """Classify a court-coordinate point as a 3-pointer per NBA rules.
 
@@ -46,6 +50,7 @@ def is_three_pointer(x: float, y: float) -> bool:
     return dist >= THREE_POINT_CORNER_FT if in_corner else dist >= THREE_POINT_ARC_FT
 
 
+# Check a point sits within the court rectangle, with a margin to tolerate homography wobble.
 def is_on_court(x: float, y: float, margin: float = 6.0) -> bool:
     """True when (x, y) sits inside the court rectangle (with a forgiving margin).
 

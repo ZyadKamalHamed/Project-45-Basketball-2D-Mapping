@@ -18,6 +18,7 @@ module corresponds to which team-member notebook.
 
 from __future__ import annotations
 
+# Standard library imports for CLI parsing, file handling, subprocess calls, and timing.
 import argparse
 import importlib.util
 import json
@@ -30,12 +31,14 @@ import traceback
 from pathlib import Path
 from typing import Any
 
+# Resolve the repo root and make the sibling pipeline package importable.
 REPO_ROOT = Path(__file__).resolve().parent.parent
 # Make the sibling pipeline/ package importable when analyze.py runs from anywhere
 # (the GUI spawns it as a subprocess from the GUI/ working dir).
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+# Model weight file locations, overridable by environment variable.
 # Weight paths can be overridden via env vars so the same script runs on SageMaker
 # (different file layout) without code changes. Locally, both weight files live under
 # the top-level `weights/` directory.
@@ -48,6 +51,7 @@ PLAYER_MODEL_PATH = Path(os.environ.get(
     str(REPO_ROOT / "weights" / "runs_abdo" / "Player_detection.pt"),
 )).resolve()
 
+# Confidence, IoU, and sampling-stride settings for the detection and team-fitting passes.
 # Detection runs every frame so shot detection has a continuous ball + rim trajectory.
 # The GUI's animated dots are subsampled separately via SAMPLE_STRIDE to keep the JSON
 # small.
@@ -66,17 +70,20 @@ TEAM_LABELS = ["Team A", "Team B"]
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
+# Print a line to stdout for the Next.js dev server to stream.
 def log(msg: str) -> None:
     """Stdout line — Next.js streams these to the dev-server console."""
     print(msg, flush=True)
 
 
+# Write a payload dict to disk as pretty-printed JSON, creating parent folders.
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w") as f:
         json.dump(payload, f, indent=2)
 
 
+# Dynamically import the team roster constants from the non-standard filename.
 def load_team_rosters() -> tuple[dict[int, str], dict[str, str]]:
     """Load TEAM_NAMES / TEAM_COLORS from `Data/Team.rosters.py` (non-standard filename)."""
     roster_path = REPO_ROOT / "Data" / "Team.rosters.py"
@@ -88,12 +95,14 @@ def load_team_rosters() -> tuple[dict[int, str], dict[str, str]]:
     return getattr(module, "TEAM_NAMES", {}), getattr(module, "TEAM_COLORS", {})
 
 
+# Write an error JSON payload, log it, and return the error exit code.
 def emit_error(out_path: Path, code: str, message: str) -> int:
     write_json(out_path, {"error": code, "message": message})
     log(f"[error] {code}: {message}")
     return 2
 
 
+# Show a path relative to the repo root when possible, for tidier log messages.
 def display_path(p: Path) -> str:
     try:
         return str(p.relative_to(REPO_ROOT))
@@ -101,6 +110,7 @@ def display_path(p: Path) -> str:
         return str(p)
 
 
+# Re-encode the raw annotated video to browser-friendly H.264 via ffmpeg.
 def reencode_annotated(raw_path: Path, h264_path: Path) -> bool:
     """Re-encode the OpenCV-written mp4v video to H.264 so browsers can play it."""
     ffmpeg = shutil.which("ffmpeg")
@@ -128,7 +138,9 @@ def reencode_annotated(raw_path: Path, h264_path: Path) -> bool:
 
 # ── Main pipeline ─────────────────────────────────────────────────────────────
 
+# Orchestrate the whole analysis run from CLI args through to the JSON payload.
 def main() -> int:
+    # Parse the command-line arguments for the input video, output path, and analysis id.
     parser = argparse.ArgumentParser(description="Run CVM + player + shot pipeline on a video.")
     parser.add_argument("--video", required=True, help="Path to the input video file.")
     parser.add_argument("--out", required=True, help="Path to write the result JSON.")
@@ -138,6 +150,7 @@ def main() -> int:
     video_path = Path(args.video).resolve()
     out_path = Path(args.out).resolve()
 
+    # Bail out early with a clear error if the video or model weights are missing.
     if not video_path.exists():
         return emit_error(out_path, "video_missing", f"Video not found: {video_path}")
     if not CVM_MODEL_PATH.exists():
@@ -167,6 +180,7 @@ def main() -> int:
         )
         from sports.basketball.config import MeasurementUnit  # type: ignore
 
+        # Import the pipeline modules that drive each analysis stage.
         from pipeline import (
             court_mapping,
             geometry,
@@ -184,12 +198,14 @@ def main() -> int:
     log(f"[start] analysis_id={args.analysis_id or '?'} video={video_path.name}")
     t0 = time.time()
 
+    # Load rosters, both models, and the court configuration.
     team_names, _team_colors = load_team_rosters()
 
     cvm_model = YOLO(str(CVM_MODEL_PATH))
     player_model = player_detection.load_player_model(str(PLAYER_MODEL_PATH))
     court_config = CourtConfiguration(league=League.NBA, measurement_unit=MeasurementUnit.FEET)
 
+    # Open the video and read its basic metadata.
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
         return emit_error(out_path, "video_open_failed", f"OpenCV could not open {video_path}")
@@ -248,9 +264,11 @@ def main() -> int:
         fps,
         (src_width, src_height),
     )
+    # Set up the box annotator with the two-team colour palette.
     box_palette = sv.ColorPalette([sv.Color.from_hex(c) for c in TEAM_PALETTE_HEX])
     box_annotator = sv.BoxAnnotator(color=box_palette, thickness=3, color_lookup=sv.ColorLookup.INDEX)
 
+    # Main per-frame loop: detect, track, project, classify teams, and annotate.
     processed_frames = 0
     frame_index = 0
     while True:
@@ -308,6 +326,7 @@ def main() -> int:
                             votes = track_team_votes[key]
                             track_team_cache[key] = max(set(votes), key=votes.count)
 
+                # Return the best-known team for a track using cached or running votes.
                 def _current_team(track_id: int) -> int:
                     """Best-known team for a track right now.
                     Use the locked-in mode if available; otherwise the running mode of
@@ -368,6 +387,7 @@ def main() -> int:
     log(f"[shots] detected {len(shot_events)} shot event(s)")
 
     # ── Per-track dominant team (mode across all observations) ───────────────
+    # Return the most common value in a list of team votes.
     def _mode(values: list[int]) -> int:
         counts: dict[int, int] = {}
         for v in values:
@@ -377,6 +397,7 @@ def main() -> int:
     track_team: dict[int, int] = {tid: _mode(votes) for tid, votes in per_track_teams.items()}
 
     # ── Map shot events into the GUI's Shot shape ────────────────────────────
+    # Find a homography from a frame near the given index, scanning outward if needed.
     def _transformer_near(idx: int):
         if idx in homography_by_frame:
             return homography_by_frame[idx]
@@ -387,6 +408,7 @@ def main() -> int:
                 return homography_by_frame[idx + delta]
         return None
 
+    # Project each usable shot into court space and build its GUI Shot record.
     shots_out: list[dict[str, Any]] = []
     skipped_unknown = 0
     skipped_no_homography = 0
@@ -439,6 +461,7 @@ def main() -> int:
         log(f"[shots] dropped {skipped_no_homography} shot(s) with no homography near release frame")
 
     # ── Build teams + players payload ────────────────────────────────────────
+    # Build the two team entries with their names, colours, and empty player lists.
     teams_out: dict[str, dict[str, Any]] = {}
     for team_idx in (0, 1):
         team_key = f"team_{team_idx}"
@@ -448,6 +471,7 @@ def main() -> int:
             "color": TEAM_PALETTE_HEX[team_idx],
             "players": [],
         }
+    # Build one player record per track and attach it to its team.
     players_out: list[dict[str, Any]] = []
     for track_id in sorted(per_track_points.keys()):
         team_idx = track_team.get(track_id, 0)
@@ -462,6 +486,7 @@ def main() -> int:
         teams_out[team_key]["players"].append(player)
 
     # ── Annotated video → H.264 for the GUI to play ──────────────────────────
+    # Convert the raw annotated video to H.264 and expose its URL when it succeeds.
     annotated_video_url: str | None = None
     if annotated_raw_path.exists() and reencode_annotated(annotated_raw_path, annotated_path):
         if args.analysis_id:
@@ -469,6 +494,7 @@ def main() -> int:
         log(f"[wrote] {annotated_path} ({annotated_path.stat().st_size / 1e6:.1f} MB)")
 
     # ── Static base-court PNG (GUI animates dots on top of this) ─────────────
+    # Render the top-down base-court PNG and record its dimensions and scale.
     court_image_url: str | None = None
     court_meta: dict[str, Any] | None = None
     if per_track_points and per_frame_samples:
@@ -497,6 +523,7 @@ def main() -> int:
     # We re-stamp each sample's teamId with the *final* mode-voted team for that track.
     # Early frames may have used a noisy first guess; the mode across the track's entire
     # lifetime is more accurate, so the GUI's animated dots should reflect that.
+    # Build the per-frame dot samples, restamping each with the track's final team.
     frames_out: list[dict[str, Any]] = [
         {
             "frameIndex": int(idx),
@@ -514,6 +541,7 @@ def main() -> int:
         for idx, sample in per_frame_samples
     ]
 
+    # Assemble the final payload matching the GUI's VideoAnalysis shape and write it out.
     payload: dict[str, Any] = {
         "videoId": args.analysis_id or video_path.stem,
         "gameLabel": f"Local clip · {video_path.name}",
@@ -546,6 +574,7 @@ def main() -> int:
     return 0
 
 
+# Run main when invoked as a script, emitting a JSON error payload on any unhandled crash.
 if __name__ == "__main__":
     try:
         sys.exit(main())
