@@ -1,4 +1,4 @@
-# Basketball 2D Mapping — UTS DLCNN A3
+# CourtIQ - Basketball 2D Mapping & Statistical Analysis  
 
 End-to-end basketball video analysis: detect players and the ball, track them across
 frames, project their positions onto a top-down court, identify the two teams from
@@ -57,7 +57,7 @@ Team Clustering), Ilias Sleiman (Shot Detection).
 ## How the pieces fit together
 
 ```
-Uploaded video ─► scripts/analyze.py ─► pipeline/* ─► results.json ─► GUI dashboard
+Uploaded video ─> analyze.py ─> pipeline/* ─> results.json ─> GUI dashboard
 ```
 
 The bridge loads the trained weights produced by the
@@ -68,10 +68,10 @@ calls a model it only renders the JSON the bridge writes.
 
 ## Running it
 
-### Path 1 — Reproduce the ML work on SageMaker (what the notebooks expect)
+### Path 1: Reproduce the ML work on SageMaker 
 
-All three notebooks under `notebooks/` were written for SageMaker JupyterLab with a
-GPU instance. To reproduce the training and inference inside the notebooks:
+Weights from previous runs are saved under weights/*. alternatively is a user prefers to start training these models themselves from scratch, all three notebooks under `notebooks/` were written for SageMaker JupyterLab with a
+GPU instance to reproduce the training and inference inside the notebooks. The steps are as follows:
 
 1. Open SageMaker JupyterLab.
 2. Clone this repo into the SageMaker workspace.
@@ -84,7 +84,7 @@ GPU instance. To reproduce the training and inference inside the notebooks:
 6. Training runs produce `.pt` weight files under `weights/runs/` and
    `weights/runs_abdo/`.
 
-### Path 2 — Run the full pipeline + dashboard locally
+### Path 2: Run the full pipeline + dashboard locally
 
 Once the trained `.pt` files exist, the bridge can analyse any video on your
 machine. You'll need:
