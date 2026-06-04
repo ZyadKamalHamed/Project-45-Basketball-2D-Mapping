@@ -1,4 +1,4 @@
-# CoutIQ - Basketball 2D Mapping & Statistical Analysis  
+# CourtIQ - Basketball 2D Mapping & Statistical Analysis  
 
 End-to-end basketball video analysis: detect players and the ball, track them across
 frames, project their positions onto a top-down court, identify the two teams from
