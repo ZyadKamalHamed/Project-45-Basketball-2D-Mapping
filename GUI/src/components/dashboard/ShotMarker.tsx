@@ -23,8 +23,8 @@ interface TooltipState {
 }
 
 // Colours used for made and missed shot markers
-const MADE_COLOR = '#22d65f'
-const MISSED_COLOR = '#ff6b6b'
+const MADE_COLOR = '#006400'
+const MISSED_COLOR = '#CC0000'
 
 // Renders one shot as an O or X on the court with a hover tooltip
 export function ShotMarker({ shot, svgX, svgY, player, teamColor, teamName, index = 0 }: Props) {
@@ -59,11 +59,11 @@ export function ShotMarker({ shot, svgX, svgY, player, teamColor, teamName, inde
           <circle
             cx={svgX}
             cy={svgY}
-            r={11}
+            r={20}
             fill="none"
             stroke={color}
-            strokeWidth={1.25}
-            opacity={0.35}
+            strokeWidth={1.5}
+            opacity={0.5}
           />
         )}
 
@@ -75,9 +75,9 @@ export function ShotMarker({ shot, svgX, svgY, player, teamColor, teamName, inde
           fill={color}
           fontFamily="var(--font-display), ui-sans-serif, system-ui"
           fontWeight={700}
-          fontSize={made ? 15 : 16}
+          fontSize={made ? 26 : 30}
           className="shot-pop"
-          style={{ animationDelay: `${delay}ms`, paintOrder: 'stroke', stroke: 'rgba(6, 8, 15, 0.85)', strokeWidth: 2.5 }}
+          style={{ animationDelay: `${delay}ms`, paintOrder: 'stroke', stroke: 'rgba(6, 8, 15, 0.85)', strokeWidth: 3.75 }}
         >
           {made ? 'O' : 'X'}
         </text>

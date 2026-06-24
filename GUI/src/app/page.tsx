@@ -3,11 +3,11 @@
 // React hooks, the filter context provider, dashboard components and helpers
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FilterProvider } from '@/context/FilterContext'
-import { CourtMap } from '@/components/dashboard/CourtMap'
-import { FilterControls } from '@/components/dashboard/FilterControls'
+import { CourtPanel } from '@/components/dashboard/CourtPanel'
 import { StatsCardsRow } from '@/components/dashboard/StatsCardsRow'
 import { VideoFeed } from '@/components/dashboard/VideoFeed'
 import { ShotLog } from '@/components/dashboard/ShotLog'
+import { MovementStats } from '@/components/dashboard/MovementStats'
 import { computeTeamStats } from '@/lib/stats-utils'
 import { pollResult } from '@/lib/analysis-client'
 import type { VideoAnalysis } from '@/types/basketball'
@@ -54,20 +54,16 @@ export default function HomePage() {
             <section className="min-w-0">
               <div className="glass-panel glass-mount h-full p-5">
                 {showCourt ? (
-                  <>
-                    {hasTeams && (
-                      <div className="mb-4">
-                        <FilterControls teams={teams} />
-                      </div>
-                    )}
-                    <CourtMap
-                      shots={shots}
-                      playerTracks={playerTracks}
-                      teams={teams}
-                      imageUrl={courtImageUrl}
-                      court={court}
-                    />
-                  </>
+                  <CourtPanel
+                    shots={shots}
+                    playerTracks={playerTracks}
+                    teams={teams}
+                    imageUrl={courtImageUrl}
+                    court={court}
+                    frames={frames}
+                    currentTime={currentTime}
+                    hasTeams={hasTeams}
+                  />
                 ) : (
                   <CourtPlaceholder status={status} />
                 )}
@@ -81,6 +77,13 @@ export default function HomePage() {
               {teamStats.map(stats => (
                 <StatsCardsRow.Card key={stats.teamId} stats={stats} />
               ))}
+            </div>
+          )}
+
+          {/* Movement & hustle analytics — derived from the on-court tracking samples. */}
+          {status === 'ready' && hasTeams && frames.length > 0 && (
+            <div className="mt-6">
+              <MovementStats frames={frames} teams={teams} playerTracks={playerTracks} />
             </div>
           )}
 

@@ -425,22 +425,51 @@ def main() -> int:
             continue
         court_x, court_y = court_mapping.project_point_to_court(transformer, (sx, sy))
 
-        # Prefer a fresh team prediction from the shooter's actual jersey at release;
-        # fall back to the cached track-team vote if the crop can't be taken.
-        shooter_tid = ev.get("shooter_track_id")
-        cached_team = track_team.get(int(shooter_tid), 0) if shooter_tid is not None else 0
-        direct_team = team_classification.predict_at_release_frame(
-            anchored_classifier,
-            str(video_path),
-            int(ev["release_frame"]),
-            ev.get("shooter_bbox_xyxy"),
-        )
-        team_idx = direct_team if direct_team is not None else cached_team
-        if direct_team is not None and direct_team != cached_team:
-            log(
-                f"[shots] shot #{ev['shot_id']}: track {shooter_tid} cached team={cached_team} "
-                f"but jersey at release reads team={direct_team} — using jersey reading"
+        # Attribute the shot to the SAME team that colours the shooter's tracker box and
+        # court dot — i.e. the shooter track's per-track voted team (`track_team`). This
+        # guarantees the shot's team matches what the user sees on the tracker. A single
+        # jersey crop at the release frame is too noisy to trust as an override (shooter
+        # mid-jump, ball over the torso, motion blur), so we only fall back to a
+        # multi-frame jersey vote when the shooter track has no team at all.
+        shooter_tid = int(ev["shooter_track_id"]) if ev.get("shooter_track_id") is not None else None
+
+        if shooter_tid is not None and shooter_tid in track_team:
+            team_idx = track_team[shooter_tid]
+        else:
+            # Edge case: shot detection named a shooter the main loop never projected, so
+            # there is no tracker team to match. Vote the shooter's jersey across the few
+            # frames near release where they were detected.
+            samples: list[tuple[int, Any]] = []
+            if shooter_tid is not None:
+                rel = int(ev["release_frame"])
+                lookback = shot_detection.SHOOTER_LOOKBACK_FRAMES
+                for rec in detection_records:
+                    if (
+                        rec.get("track_id") == shooter_tid
+                        and rec.get("class_id") == player_detection.CLASS_PLAYER
+                        and rel - lookback <= rec.get("frame", -1) <= rel
+                    ):
+                        samples.append((int(rec["frame"]), rec["bbox_xyxy"]))
+                        if len(samples) >= 5:
+                            break
+            if not samples and ev.get("shooter_bbox_xyxy") is not None:
+                samples = [(int(ev["release_frame"]), ev["shooter_bbox_xyxy"])]
+
+            fallback_team = team_classification.predict_team_multi_frame(
+                anchored_classifier, str(video_path), samples
             )
+            if fallback_team is not None:
+                team_idx = fallback_team
+                log(
+                    f"[shots] shot #{ev['shot_id']}: shooter track {shooter_tid} not in "
+                    f"tracker teams — multi-frame jersey vote → team_{team_idx}"
+                )
+            else:
+                team_idx = 0
+                log(
+                    f"[shots] shot #{ev['shot_id']}: shooter track {shooter_tid} has no team "
+                    f"and jersey vote failed — defaulting to team_0"
+                )
 
         _, dist_ft = geometry.nearest_basket(court_x, court_y)
         shots_out.append({

@@ -63,6 +63,11 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotate
   // Mirror video playback time into the parent so dots can follow the playhead.
   // The native `timeupdate` event fires ~4× per second, which is enough for the dot
   // animation and avoids hammering the parent with re-renders.
+  //
+  // `annotatedUrl` is a dependency on purpose: when the annotated render swaps in, the
+  // <video> below gets a new `key` and React mounts a *fresh* DOM element. Without this
+  // dep the effect wouldn't re-run, leaving the listeners bound to the old, discarded
+  // element — so playback time (and the tracking dots) would freeze on the swap.
   useEffect(() => {
     if (state.kind !== 'ready' || !onTimeUpdate) return
     const video = videoRef.current
@@ -76,7 +81,7 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotate
       video.removeEventListener('timeupdate', emit)
       video.removeEventListener('seeked', emit)
     }
-  }, [state.kind, onTimeUpdate])
+  }, [state.kind, onTimeUpdate, annotatedUrl])
 
   // Create a local preview URL, upload the file to the bridge and move to the ready state
   const handleFile = useCallback(

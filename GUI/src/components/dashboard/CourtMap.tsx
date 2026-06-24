@@ -2,9 +2,10 @@
 
 // React hooks, shared types, filter context, court geometry helpers and the shot marker component
 import { useMemo, useState } from 'react'
-import { Shot, PlayerTrack, Team, CourtMeta } from '@/types/basketball'
+import { Shot, PlayerTrack, Team, CourtMeta, AnalysisFrame } from '@/types/basketball'
 import { useFilters } from '@/context/FilterContext'
-import { COURT, courtToSvg, getCourtHeight } from '@/lib/court-utils'
+import { COURT, courtToSvg, getCourtHeight, contrastText } from '@/lib/court-utils'
+import { playersAtTime } from '@/lib/tracking-utils'
 import { ShotMarker } from './ShotMarker'
 
 // Props for the court map, including optional model-rendered PNG and its pixel/feet metadata
@@ -16,6 +17,12 @@ interface Props {
   imageUrl?: string | null
   /** Pixel/feet metadata for the court image so dots line up with the rendered PNG. */
   court?: CourtMeta | null
+  /** Time-aligned player position samples, used to animate live tracking dots. */
+  frames?: AnalysisFrame[]
+  /** Current video playback time in seconds — drives the live tracking dots. */
+  currentTime?: number
+  /** Constrain the court image height so it fits without scrolling (used in the fullscreen modal). */
+  compact?: boolean
 }
 
 // Shared colours for the synthetic SVG court lines, background, paint and rim
@@ -31,6 +38,9 @@ export function CourtMap({
   teams,
   imageUrl,
   court,
+  frames = [],
+  currentTime = 0,
+  compact = false,
 }: Props) {
   // Read the active filters and current court mode from context
   const filters = useFilters()
@@ -64,6 +74,12 @@ export function CourtMap({
         court={court}
         totalTracks={playerTracks.length}
         shots={filteredShots}
+        teams={teams}
+        frames={frames}
+        currentTime={currentTime}
+        teamFilter={filters.teamId}
+        playerFilter={filters.playerTrackId}
+        compact={compact}
       />
     )
   }
@@ -121,14 +137,40 @@ function ModelCourtImage({
   court,
   totalTracks,
   shots,
+  teams,
+  frames,
+  currentTime,
+  teamFilter,
+  playerFilter,
+  compact,
 }: {
   imageUrl: string
   court?: CourtMeta | null
   totalTracks: number
   shots: Shot[]
+  teams: Record<string, Team>
+  frames: AnalysisFrame[]
+  currentTime: number
+  teamFilter: string | null
+  playerFilter: number | null
+  compact: boolean
 }) {
   // Track whether the PNG failed to load so we can show a fallback message
   const [loadError, setLoadError] = useState(false)
+  // Live tracking dots are on by default — judges see the board move with the video.
+  const [showTracking, setShowTracking] = useState(true)
+
+  // Interpolate every player's court position at the current playback time, then apply the
+  // same team/player filters used for the shot markers so the board respects the filter chips.
+  const livePlayers = useMemo(() => {
+    if (frames.length === 0) return []
+    return playersAtTime(frames, currentTime).filter(p => {
+      if (teamFilter && p.teamId !== teamFilter) return false
+      if (playerFilter !== null && p.trackId !== playerFilter) return false
+      return true
+    })
+  }, [frames, currentTime, teamFilter, playerFilter])
+  const hasTracking = frames.length > 0
 
   // Show a friendly placeholder when the court render could not be loaded
   if (loadError) {
@@ -157,12 +199,23 @@ function ModelCourtImage({
 
   return (
     <div className="w-full">
-      <div className="relative overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface-2)]">
+      {/* In compact mode (fullscreen modal) the court is capped by height and shrink-wrapped
+          so the whole court + filters fit on screen without scrolling. The SVG overlay is
+          absolutely positioned to this wrapper, so it stays aligned at any size. */}
+      <div
+        className="relative mx-auto overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface-2)]"
+        style={compact ? { width: 'fit-content', maxWidth: '100%' } : undefined}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element -- dynamic API endpoint */}
         <img
           src={imageUrl}
           alt="Court map with live player positions"
-          className="block h-auto w-full"
+          className="block"
+          style={
+            compact
+              ? { maxHeight: '60vh', width: 'auto', maxWidth: '100%' }
+              : { height: 'auto', width: '100%' }
+          }
           onError={() => setLoadError(true)}
         />
         <svg
@@ -170,19 +223,53 @@ function ModelCourtImage({
           preserveAspectRatio="none"
           className="pointer-events-none absolute inset-0 h-full w-full"
         >
-          {/* Shot markers (O for made, X for missed). Player tracking dots are intentionally
-              omitted from the shot map — they live in the video feed instead. */}
+          {/* Live tracking dots — interpolated player positions following the video playhead. */}
+          {showTracking &&
+            livePlayers.map((p) => {
+              const cx = p.x * scale + padding
+              const cy = p.y * scale + padding
+              const color = teams[p.teamId]?.color ?? '#9aa4bf'
+              const r = scale * 1.2
+              return (
+                <g key={`dot-${p.trackId}`} style={{ pointerEvents: 'none' }}>
+                  <circle cx={cx} cy={cy} r={r * 1.55} fill={color} opacity={0.18} />
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={r}
+                    fill={color}
+                    stroke="rgba(255,255,255,0.85)"
+                    strokeWidth={r * 0.13}
+                    style={{ filter: `drop-shadow(0 0 ${r * 0.42}px ${color})` }}
+                  />
+                  <text
+                    x={cx}
+                    y={cy}
+                    fontSize={r * 0.85}
+                    fontFamily="var(--font-display)"
+                    fontWeight={700}
+                    fill={contrastText(/^#[0-9a-fA-F]{6}$/.test(color) ? color : '#9aa4bf')}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                  >
+                    {p.trackId}
+                  </text>
+                </g>
+              )
+            })}
+
+          {/* Shot markers (O for made, X for missed), drawn on top of the live tracking dots. */}
           {shots.map((shot) => {
             const cx = shot.location.x * scale + padding
             const cy = shot.location.y * scale + padding
             const made = shot.result === 'made'
-            const color = made ? '#22d65f' : '#ff6b6b'
+            const color = made ? '#006400' : '#CC0000'
             return (
               <g key={`shot-${shot.id}`} style={{ pointerEvents: 'none' }}>
                 <text
                   x={cx}
                   y={cy}
-                  fontSize={36}
+                  fontSize={64}
                   fontFamily="var(--font-display)"
                   fontWeight={700}
                   fill={color}
@@ -197,13 +284,28 @@ function ModelCourtImage({
           })}
         </svg>
       </div>
-      <div className="mt-4 flex items-center gap-5 text-xs text-[var(--text-muted)]">
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[var(--text-muted)]">
         <LegendItem color="var(--made)" symbol="O" label="Made" />
         <LegendItem color="var(--miss)" symbol="X" label="Missed" />
         <span className="tabular-nums text-[var(--text-soft)]">
           {shots.length} shot{shots.length !== 1 ? 's' : ''}
         </span>
-        <span className="ml-auto tabular-nums text-[var(--text-soft)]">
+        {hasTracking && (
+          <button
+            type="button"
+            onClick={() => setShowTracking(v => !v)}
+            aria-pressed={showTracking}
+            className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium uppercase tracking-wider transition-colors ${
+              showTracking
+                ? 'border-[rgba(108,140,255,0.45)] bg-[rgba(108,140,255,0.16)] text-[var(--accent)]'
+                : 'border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-soft)] hover:text-[var(--text-muted)]'
+            }`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${showTracking ? 'animate-pulse bg-[var(--accent)]' : 'bg-[var(--text-soft)]'}`} />
+            Live tracking
+          </button>
+        )}
+        <span className={`tabular-nums text-[var(--text-soft)] ${hasTracking ? '' : 'ml-auto'}`}>
           {totalTracks} track{totalTracks !== 1 ? 's' : ''} projected
         </span>
       </div>
