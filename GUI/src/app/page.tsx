@@ -12,6 +12,12 @@ import { computeTeamStats } from '@/lib/stats-utils'
 import { pollResult } from '@/lib/analysis-client'
 import type { VideoAnalysis } from '@/types/basketball'
 
+// Build-time flag for the public showcase / QR-code build. When NEXT_PUBLIC_DEMO_MODE=1
+// (set on Vercel), the app loads a committed demo result from /demo/result.json instead of
+// expecting a live Python analysis backend, and the upload UI is hidden. Local dev leaves
+// it unset, so the normal upload → analyse flow still works.
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === '1'
+
 // Main dashboard page that ties the video, court map, stats and shot log together
 export default function HomePage() {
   const { analysis, analysisId, status, message, setAnalysisId } = useAnalysis()
@@ -48,6 +54,7 @@ export default function HomePage() {
                 onAnalysisStarted={setAnalysisId}
                 onTimeUpdate={setCurrentTime}
                 annotatedUrl={analysis?.annotatedVideoUrl ?? null}
+                demo={DEMO_MODE}
               />
             </section>
 
@@ -235,7 +242,9 @@ interface UseAnalysisReturn {
 function useAnalysis(): UseAnalysisReturn {
   const [analysisId, setAnalysisId] = useState<string | null>(null)
   const [analysis, setAnalysis] = useState<VideoAnalysis | null>(null)
-  const [status, setStatus] = useState<AnalysisStatus>('idle')
+  // Demo builds open in 'processing' so the first paint shows a loading court rather than
+  // the "upload footage" idle copy, until /demo/result.json arrives a moment later.
+  const [status, setStatus] = useState<AnalysisStatus>(DEMO_MODE ? 'processing' : 'idle')
   const [message, setMessage] = useState<string | null>(null)
 
   // Set or clear the active analysis id and reset the related state accordingly
@@ -252,9 +261,39 @@ function useAnalysis(): UseAnalysisReturn {
     }
   }, [])
 
-  // Poll for results whenever the analysis id changes, cancelling cleanly on unmount
+  // Showcase mode: load the committed demo result instead of polling a live backend.
+  // Triggered by the build-time flag (Vercel) or a ?demo=1 query param (handy locally).
   useEffect(() => {
-    if (!analysisId) return
+    const demo =
+      DEMO_MODE ||
+      (typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('demo') === '1')
+    if (!demo) return
+    let cancelled = false
+    setStatus('processing')
+    fetch('/demo/result.json')
+      .then((r) => r.json())
+      .then((data: VideoAnalysis) => {
+        if (cancelled) return
+        setAnalysis(data)
+        setAnalysisId('demo')
+        setStatus('ready')
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStatus('error')
+          setMessage('Could not load demo data')
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Poll for results whenever the analysis id changes, cancelling cleanly on unmount.
+  // The reserved 'demo' id is handled by the loader above, so skip polling for it.
+  useEffect(() => {
+    if (!analysisId || analysisId === 'demo') return
     let cancelled = false
 
     // Drive the polling loop and update status as processing, ready or error results arrive

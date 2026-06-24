@@ -14,6 +14,9 @@ interface Props {
   /** Server-rendered annotated video. When present, the player swaps from the raw blob URL
    *  to this so users see the team-coloured detection boxes on top of the source. */
   annotatedUrl?: string | null
+  /** Showcase mode: skip the upload flow entirely and just play the pre-rendered annotated
+   *  clip (auto-play, looped). Used for the public demo / QR-code build. */
+  demo?: boolean
 }
 
 // Accepted file extensions and MIME types for the upload input
@@ -27,7 +30,9 @@ type UploadState =
   | { kind: 'error'; message: string }
 
 // Handles uploading game footage, previewing it and swapping to the annotated render
-export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotatedUrl = null }: Props) {
+export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotatedUrl = null, demo = false }: Props) {
+  // In showcase mode we render the annotated clip directly, bypassing the upload state machine.
+  const demoActive = demo && Boolean(annotatedUrl)
   // Upload lifecycle state, drag styling, decode error code and refs for the input, video and blob URL
   const [state, setState] = useState<UploadState>({ kind: 'idle' })
   const [dragActive, setDragActive] = useState(false)
@@ -69,7 +74,7 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotate
   // dep the effect wouldn't re-run, leaving the listeners bound to the old, discarded
   // element — so playback time (and the tracking dots) would freeze on the swap.
   useEffect(() => {
-    if (state.kind !== 'ready' || !onTimeUpdate) return
+    if ((state.kind !== 'ready' && !demoActive) || !onTimeUpdate) return
     const video = videoRef.current
     if (!video) return
 
@@ -81,7 +86,7 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotate
       video.removeEventListener('timeupdate', emit)
       video.removeEventListener('seeked', emit)
     }
-  }, [state.kind, onTimeUpdate, annotatedUrl])
+  }, [state.kind, onTimeUpdate, annotatedUrl, demoActive])
 
   // Create a local preview URL, upload the file to the bridge and move to the ready state
   const handleFile = useCallback(
@@ -120,6 +125,45 @@ export function VideoFeed({ gameLabel, onAnalysisStarted, onTimeUpdate, annotate
     setState({ kind: 'idle' })
     if (inputRef.current) inputRef.current.value = ''
   }, [])
+
+  // Showcase mode: no upload UI at all. Play the pre-rendered annotated clip (auto-loop,
+  // muted so it can autoplay without a user gesture), or a loading card until it arrives.
+  if (demo) {
+    return (
+      <div className="glass-mount w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-black/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.45)]">
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2.5">
+          <span className="truncate text-[12px] font-medium text-white/85" title={gameLabel}>
+            {gameLabel}
+          </span>
+          <span className="rounded-full bg-[rgba(108,140,255,0.18)] border border-[rgba(108,140,255,0.35)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--accent)]">
+            Annotated
+          </span>
+        </div>
+        {demoActive && videoErrorCode === null ? (
+          <video
+            ref={videoRef}
+            key={annotatedUrl as string}
+            src={annotatedUrl as string}
+            controls
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            onError={(e) => setVideoErrorCode(e.currentTarget.error?.code ?? 0)}
+            className="block aspect-video w-full bg-black"
+            aria-label={`Game footage — ${gameLabel}`}
+          />
+        ) : videoErrorCode !== null ? (
+          <UnplayablePlaceholder code={videoErrorCode} />
+        ) : (
+          <div className="flex aspect-video w-full items-center justify-center bg-black/60 text-sm text-[var(--text-muted)]">
+            Loading demo…
+          </div>
+        )}
+      </div>
+    )
+  }
 
   // Before a file is ready, render the click-or-drag drop zone with upload and error states
   if (state.kind === 'idle' || state.kind === 'uploading' || state.kind === 'error') {

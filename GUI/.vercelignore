@@ -1,0 +1,4 @@
+# Never ship these to Vercel (huge / runtime-only / rebuilt by Vercel).
+tmp
+node_modules
+.next

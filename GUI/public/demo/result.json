@@ -1,0 +1,2739 @@
+{
+  "videoId": "hero",
+  "gameLabel": "Boston Celtics vs New York Knicks \u00b7 Playoffs (demo clip)",
+  "duration": 6.3,
+  "fps": 30.0,
+  "totalFrames": 189,
+  "teams": {
+    "team_0": {
+      "name": "Team A",
+      "shortName": "A",
+      "color": "#6c8cff",
+      "players": [
+        {
+          "trackId": 1,
+          "teamId": "team_0",
+          "jerseyNumber": "",
+          "playerName": "Player #1"
+        },
+        {
+          "trackId": 2,
+          "teamId": "team_0",
+          "jerseyNumber": "",
+          "playerName": "Player #2"
+        },
+        {
+          "trackId": 4,
+          "teamId": "team_0",
+          "jerseyNumber": "",
+          "playerName": "Player #4"
+        },
+        {
+          "trackId": 5,
+          "teamId": "team_0",
+          "jerseyNumber": "",
+          "playerName": "Player #5"
+        },
+        {
+          "trackId": 6,
+          "teamId": "team_0",
+          "jerseyNumber": "",
+          "playerName": "Player #6"
+        },
+        {
+          "trackId": 9,
+          "teamId": "team_0",
+          "jerseyNumber": "",
+          "playerName": "Player #9"
+        },
+        {
+          "trackId": 10,
+          "teamId": "team_0",
+          "jerseyNumber": "",
+          "playerName": "Player #10"
+        },
+        {
+          "trackId": 49,
+          "teamId": "team_0",
+          "jerseyNumber": "",
+          "playerName": "Player #49"
+        },
+        {
+          "trackId": 191,
+          "teamId": "team_0",
+          "jerseyNumber": "",
+          "playerName": "Player #191"
+        },
+        {
+          "trackId": 200,
+          "teamId": "team_0",
+          "jerseyNumber": "",
+          "playerName": "Player #200"
+        },
+        {
+          "trackId": 212,
+          "teamId": "team_0",
+          "jerseyNumber": "",
+          "playerName": "Player #212"
+        }
+      ]
+    },
+    "team_1": {
+      "name": "Team B",
+      "shortName": "B",
+      "color": "#ea580c",
+      "players": [
+        {
+          "trackId": 3,
+          "teamId": "team_1",
+          "jerseyNumber": "",
+          "playerName": "Player #3"
+        },
+        {
+          "trackId": 8,
+          "teamId": "team_1",
+          "jerseyNumber": "",
+          "playerName": "Player #8"
+        },
+        {
+          "trackId": 11,
+          "teamId": "team_1",
+          "jerseyNumber": "",
+          "playerName": "Player #11"
+        },
+        {
+          "trackId": 19,
+          "teamId": "team_1",
+          "jerseyNumber": "",
+          "playerName": "Player #19"
+        },
+        {
+          "trackId": 88,
+          "teamId": "team_1",
+          "jerseyNumber": "",
+          "playerName": "Player #88"
+        },
+        {
+          "trackId": 108,
+          "teamId": "team_1",
+          "jerseyNumber": "",
+          "playerName": "Player #108"
+        },
+        {
+          "trackId": 177,
+          "teamId": "team_1",
+          "jerseyNumber": "",
+          "playerName": "Player #177"
+        },
+        {
+          "trackId": 221,
+          "teamId": "team_1",
+          "jerseyNumber": "",
+          "playerName": "Player #221"
+        }
+      ]
+    }
+  },
+  "shots": [
+    {
+      "id": 1,
+      "frameIndex": 143,
+      "shooterTrackId": 19,
+      "shooterTeamId": "team_1",
+      "location": {
+        "x": 85.774,
+        "y": 26.157
+      },
+      "distance": 3.19,
+      "shotType": "jump",
+      "result": "made",
+      "isThreePointer": false
+    }
+  ],
+  "playerTracks": [
+    {
+      "trackId": 1,
+      "teamId": "team_0",
+      "jerseyNumber": "",
+      "playerName": "Player #1"
+    },
+    {
+      "trackId": 2,
+      "teamId": "team_0",
+      "jerseyNumber": "",
+      "playerName": "Player #2"
+    },
+    {
+      "trackId": 3,
+      "teamId": "team_1",
+      "jerseyNumber": "",
+      "playerName": "Player #3"
+    },
+    {
+      "trackId": 4,
+      "teamId": "team_0",
+      "jerseyNumber": "",
+      "playerName": "Player #4"
+    },
+    {
+      "trackId": 5,
+      "teamId": "team_0",
+      "jerseyNumber": "",
+      "playerName": "Player #5"
+    },
+    {
+      "trackId": 6,
+      "teamId": "team_0",
+      "jerseyNumber": "",
+      "playerName": "Player #6"
+    },
+    {
+      "trackId": 8,
+      "teamId": "team_1",
+      "jerseyNumber": "",
+      "playerName": "Player #8"
+    },
+    {
+      "trackId": 9,
+      "teamId": "team_0",
+      "jerseyNumber": "",
+      "playerName": "Player #9"
+    },
+    {
+      "trackId": 10,
+      "teamId": "team_0",
+      "jerseyNumber": "",
+      "playerName": "Player #10"
+    },
+    {
+      "trackId": 11,
+      "teamId": "team_1",
+      "jerseyNumber": "",
+      "playerName": "Player #11"
+    },
+    {
+      "trackId": 19,
+      "teamId": "team_1",
+      "jerseyNumber": "",
+      "playerName": "Player #19"
+    },
+    {
+      "trackId": 49,
+      "teamId": "team_0",
+      "jerseyNumber": "",
+      "playerName": "Player #49"
+    },
+    {
+      "trackId": 88,
+      "teamId": "team_1",
+      "jerseyNumber": "",
+      "playerName": "Player #88"
+    },
+    {
+      "trackId": 108,
+      "teamId": "team_1",
+      "jerseyNumber": "",
+      "playerName": "Player #108"
+    },
+    {
+      "trackId": 177,
+      "teamId": "team_1",
+      "jerseyNumber": "",
+      "playerName": "Player #177"
+    },
+    {
+      "trackId": 191,
+      "teamId": "team_0",
+      "jerseyNumber": "",
+      "playerName": "Player #191"
+    },
+    {
+      "trackId": 200,
+      "teamId": "team_0",
+      "jerseyNumber": "",
+      "playerName": "Player #200"
+    },
+    {
+      "trackId": 212,
+      "teamId": "team_0",
+      "jerseyNumber": "",
+      "playerName": "Player #212"
+    },
+    {
+      "trackId": 221,
+      "teamId": "team_1",
+      "jerseyNumber": "",
+      "playerName": "Player #221"
+    }
+  ],
+  "frames": [
+    {
+      "frameIndex": 0,
+      "t": 0.0,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 67.259,
+          "y": 12.681,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 65.523,
+          "y": 35.897,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 69.847,
+          "y": 33.122,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 84.024,
+          "y": 47.661,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 72.636,
+          "y": 15.252,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 75.866,
+          "y": 11.257,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.446,
+          "y": 8.072,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 90.731,
+          "y": 36.401,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 11,
+          "x": 85.015,
+          "y": 41.199,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 88.864,
+          "y": 33.148,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 5,
+      "t": 0.1667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 69.029,
+          "y": 13.04,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 65.94,
+          "y": 35.368,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 70.13,
+          "y": 32.659,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 83.232,
+          "y": 48.324,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 73.13,
+          "y": 15.091,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 76.124,
+          "y": 11.247,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.983,
+          "y": 5.467,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 90.756,
+          "y": 36.723,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 11,
+          "x": 84.422,
+          "y": 41.701,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 89.411,
+          "y": 33.771,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 10,
+      "t": 0.3333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 69.962,
+          "y": 13.764,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 66.052,
+          "y": 35.383,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 70.145,
+          "y": 32.311,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 83.509,
+          "y": 47.977,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 73.731,
+          "y": 14.286,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 76.471,
+          "y": 11.715,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.861,
+          "y": 5.558,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 90.993,
+          "y": 37.135,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 11,
+          "x": 84.197,
+          "y": 41.55,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 89.569,
+          "y": 33.698,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 15,
+      "t": 0.5,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 70.825,
+          "y": 15.752,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 66.173,
+          "y": 35.532,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 70.654,
+          "y": 31.963,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 83.54,
+          "y": 47.892,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 74.214,
+          "y": 16.161,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 76.764,
+          "y": 11.849,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.744,
+          "y": 5.789,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 91.096,
+          "y": 37.76,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 11,
+          "x": 83.969,
+          "y": 41.567,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 89.576,
+          "y": 33.932,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 20,
+      "t": 0.6667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 70.895,
+          "y": 18.834,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 66.293,
+          "y": 35.56,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 70.86,
+          "y": 31.99,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 83.525,
+          "y": 47.837,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 74.858,
+          "y": 17.773,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 77.003,
+          "y": 11.97,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.447,
+          "y": 7.895,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 91.023,
+          "y": 38.039,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 11,
+          "x": 83.825,
+          "y": 41.699,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 89.419,
+          "y": 33.809,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 25,
+      "t": 0.8333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 71.712,
+          "y": 19.485,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 66.95,
+          "y": 35.864,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 70.897,
+          "y": 32.06,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 84.333,
+          "y": 46.497,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 74.985,
+          "y": 18.271,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 77.9,
+          "y": 9.484,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.363,
+          "y": 7.969,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 91.531,
+          "y": 38.104,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 11,
+          "x": 84.012,
+          "y": 41.424,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 89.43,
+          "y": 33.501,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 30,
+      "t": 1.0,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 71.584,
+          "y": 22.704,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 67.65,
+          "y": 36.102,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 70.985,
+          "y": 32.068,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 85.061,
+          "y": 45.151,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 75.578,
+          "y": 18.27,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 77.558,
+          "y": 8.981,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.759,
+          "y": 5.926,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 91.503,
+          "y": 38.145,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 11,
+          "x": 84.596,
+          "y": 40.39,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 89.672,
+          "y": 33.75,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 35,
+      "t": 1.1667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 71.264,
+          "y": 23.643,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 67.399,
+          "y": 36.131,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 70.652,
+          "y": 31.915,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 85.637,
+          "y": 44.353,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 75.842,
+          "y": 19.742,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 77.416,
+          "y": 7.981,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.122,
+          "y": 4.979,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 92.038,
+          "y": 37.578,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 11,
+          "x": 85.203,
+          "y": 39.935,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 90.597,
+          "y": 33.421,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 40,
+      "t": 1.3333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 70.755,
+          "y": 26.707,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 67.547,
+          "y": 35.92,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 71.029,
+          "y": 31.75,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 86.372,
+          "y": 42.486,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 75.822,
+          "y": 21.521,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 78.325,
+          "y": 6.702,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.261,
+          "y": 4.982,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 92.024,
+          "y": 37.505,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 11,
+          "x": 86.017,
+          "y": 39.401,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 91.062,
+          "y": 33.622,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 49,
+          "x": 86.781,
+          "y": 39.428,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 45,
+      "t": 1.5,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 70.804,
+          "y": 27.901,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 67.968,
+          "y": 34.969,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 71.221,
+          "y": 31.678,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 86.75,
+          "y": 42.085,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 75.977,
+          "y": 21.937,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 76.525,
+          "y": 9.539,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.138,
+          "y": 4.93,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 92.062,
+          "y": 37.459,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 91.224,
+          "y": 33.71,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 49,
+          "x": 86.835,
+          "y": 41.266,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 50,
+      "t": 1.6667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 70.61,
+          "y": 31.144,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 68.429,
+          "y": 34.993,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 71.452,
+          "y": 31.698,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 86.807,
+          "y": 41.716,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 76.084,
+          "y": 21.847,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 76.602,
+          "y": 8.732,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 73.891,
+          "y": 4.835,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 91.947,
+          "y": 37.446,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 91.249,
+          "y": 33.597,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 49,
+          "x": 87.429,
+          "y": 40.537,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 55,
+      "t": 1.8333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 70.914,
+          "y": 31.408,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 69.783,
+          "y": 34.582,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 71.842,
+          "y": 32.601,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 86.98,
+          "y": 41.428,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 76.478,
+          "y": 22.824,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 76.301,
+          "y": 7.775,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.213,
+          "y": 4.956,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 91.858,
+          "y": 37.319,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 90.702,
+          "y": 33.746,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 49,
+          "x": 87.673,
+          "y": 39.718,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 60,
+      "t": 2.0,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 70.721,
+          "y": 30.932,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 70.757,
+          "y": 34.827,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 72.745,
+          "y": 33.016,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 86.931,
+          "y": 41.56,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 76.076,
+          "y": 24.597,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 76.531,
+          "y": 7.297,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 73.82,
+          "y": 5.255,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 91.388,
+          "y": 37.178,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 90.393,
+          "y": 33.182,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 65,
+      "t": 2.1667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 70.633,
+          "y": 32.142,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 72.98,
+          "y": 35.447,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 74.136,
+          "y": 32.065,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 4,
+          "x": 86.869,
+          "y": 42.035,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 6,
+          "x": 76.638,
+          "y": 24.969,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 76.514,
+          "y": 7.922,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.232,
+          "y": 5.681,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 91.977,
+          "y": 37.047,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 90.262,
+          "y": 33.608,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 70,
+      "t": 2.3333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 69.318,
+          "y": 31.637,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 74.066,
+          "y": 35.007,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 86.461,
+          "y": 42.006,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 77.288,
+          "y": 7.81,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.054,
+          "y": 6.605,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 92.361,
+          "y": 36.014,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 90.344,
+          "y": 32.067,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 77.784,
+          "y": 20.734,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 75.908,
+          "y": 32.57,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 75,
+      "t": 2.5,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 68.054,
+          "y": 32.313,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 75.964,
+          "y": 33.48,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 86.015,
+          "y": 42.566,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 77.0,
+          "y": 8.607,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.081,
+          "y": 8.823,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 92.16,
+          "y": 35.904,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 90.738,
+          "y": 29.587,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 77.054,
+          "y": 24.122,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 77.873,
+          "y": 30.728,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 80,
+      "t": 2.6667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 67.133,
+          "y": 33.343,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 2,
+          "x": 76.875,
+          "y": 33.15,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 85.632,
+          "y": 43.247,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 77.114,
+          "y": 12.108,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.644,
+          "y": 10.963,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 91.281,
+          "y": 35.782,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 89.572,
+          "y": 29.256,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 77.019,
+          "y": 25.462,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 78.618,
+          "y": 30.317,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 11,
+          "x": 86.762,
+          "y": 39.885,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 108,
+          "x": 85.932,
+          "y": 39.848,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 85,
+      "t": 2.8333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 65.867,
+          "y": 33.299,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 85.525,
+          "y": 43.658,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 77.516,
+          "y": 13.282,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.366,
+          "y": 15.402,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 90.791,
+          "y": 35.356,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 89.153,
+          "y": 28.401,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 77.213,
+          "y": 25.427,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 80.913,
+          "y": 28.157,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 108,
+          "x": 85.955,
+          "y": 39.675,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 77.606,
+          "y": 32.169,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 90,
+      "t": 3.0,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 64.298,
+          "y": 34.185,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 85.402,
+          "y": 43.729,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 77.871,
+          "y": 17.518,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 74.448,
+          "y": 17.757,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 91.146,
+          "y": 33.106,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 87.872,
+          "y": 27.777,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 75.886,
+          "y": 24.979,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 81.937,
+          "y": 27.689,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 108,
+          "x": 85.6,
+          "y": 40.161,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 78.917,
+          "y": 31.605,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 95,
+      "t": 3.1667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 64.109,
+          "y": 34.266,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 84.91,
+          "y": 44.772,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 78.651,
+          "y": 17.903,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 76.303,
+          "y": 19.129,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 91.393,
+          "y": 30.852,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 86.947,
+          "y": 26.791,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 75.893,
+          "y": 23.729,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 82.357,
+          "y": 27.711,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 108,
+          "x": 84.806,
+          "y": 42.089,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 79.706,
+          "y": 32.177,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 100,
+      "t": 3.3333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 64.718,
+          "y": 34.74,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 84.587,
+          "y": 46.108,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 78.79,
+          "y": 21.134,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 10,
+          "x": 90.356,
+          "y": 30.582,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 86.741,
+          "y": 26.526,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 75.681,
+          "y": 23.654,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 83.297,
+          "y": 27.701,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 80.422,
+          "y": 32.588,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 84.871,
+          "y": 41.934,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 105,
+      "t": 3.5,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 64.994,
+          "y": 36.165,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 84.117,
+          "y": 46.414,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 80.464,
+          "y": 23.599,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 10,
+          "x": 89.582,
+          "y": 30.536,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 87.208,
+          "y": 26.015,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 75.96,
+          "y": 23.855,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 83.102,
+          "y": 29.618,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 81.88,
+          "y": 33.171,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 84.58,
+          "y": 42.172,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 78.858,
+          "y": 23.234,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 110,
+      "t": 3.6667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 65.093,
+          "y": 36.161,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 84.041,
+          "y": 46.378,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 80.678,
+          "y": 24.521,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 10,
+          "x": 89.457,
+          "y": 29.799,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 86.499,
+          "y": 25.773,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 76.473,
+          "y": 24.393,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 83.052,
+          "y": 29.193,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 82.855,
+          "y": 33.399,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 84.05,
+          "y": 43.465,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 79.259,
+          "y": 24.868,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 115,
+      "t": 3.8333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 64.969,
+          "y": 36.873,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 84.128,
+          "y": 46.711,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 81.676,
+          "y": 23.894,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 10,
+          "x": 89.362,
+          "y": 27.432,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 88,
+          "x": 76.34,
+          "y": 25.544,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 83.511,
+          "y": 29.965,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 84.2,
+          "y": 34.289,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 84.008,
+          "y": 43.537,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 80.652,
+          "y": 25.019,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 87.925,
+          "y": 20.474,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 120,
+      "t": 4.0,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 65.246,
+          "y": 39.171,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 84.166,
+          "y": 47.615,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 82.666,
+          "y": 24.598,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 10,
+          "x": 88.656,
+          "y": 27.175,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 88,
+          "x": 76.896,
+          "y": 26.265,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 84.565,
+          "y": 31.233,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 85.682,
+          "y": 33.446,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 84.037,
+          "y": 43.401,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 82.222,
+          "y": 25.68,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 85.362,
+          "y": 25.97,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 125,
+      "t": 4.1667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 65.364,
+          "y": 40.479,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 83.984,
+          "y": 48.317,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 90.021,
+          "y": 20.948,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 88,
+          "x": 78.393,
+          "y": 26.784,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 3,
+          "x": 85.442,
+          "y": 32.96,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 86.54,
+          "y": 35.2,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 83.812,
+          "y": 43.474,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 83.265,
+          "y": 27.722,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 85.11,
+          "y": 24.451,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 130,
+      "t": 4.3333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 65.741,
+          "y": 40.729,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 84.18,
+          "y": 48.42,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 88.111,
+          "y": 24.658,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 86.282,
+          "y": 33.424,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 87.32,
+          "y": 36.868,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 83.541,
+          "y": 43.149,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 9,
+          "x": 84.785,
+          "y": 27.877,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 8,
+          "x": 86.157,
+          "y": 25.976,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 177,
+          "x": 79.581,
+          "y": 27.131,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 135,
+      "t": 4.5,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 65.861,
+          "y": 40.748,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 84.015,
+          "y": 48.643,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 10,
+          "x": 87.908,
+          "y": 22.84,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 86.737,
+          "y": 34.767,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 88.363,
+          "y": 36.816,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 83.165,
+          "y": 42.877,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 8,
+          "x": 87.09,
+          "y": 25.409,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 84.709,
+          "y": 27.723,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 81.294,
+          "y": 26.17,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 140,
+      "t": 4.6667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 66.212,
+          "y": 40.108,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 83.705,
+          "y": 49.369,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 86.227,
+          "y": 37.715,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 87.592,
+          "y": 41.103,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 82.836,
+          "y": 42.684,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 8,
+          "x": 87.935,
+          "y": 27.214,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 85.562,
+          "y": 26.76,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 82.573,
+          "y": 26.326,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 145,
+      "t": 4.8333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 66.081,
+          "y": 40.061,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 83.041,
+          "y": 49.763,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 86.332,
+          "y": 38.489,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 87.816,
+          "y": 41.31,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 82.204,
+          "y": 42.466,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 8,
+          "x": 87.886,
+          "y": 28.643,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 85.642,
+          "y": 26.146,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 83.192,
+          "y": 26.396,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 200,
+          "x": 86.87,
+          "y": 26.651,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 150,
+      "t": 5.0,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 65.762,
+          "y": 40.711,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 82.506,
+          "y": 49.739,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 87.031,
+          "y": 37.924,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 88.36,
+          "y": 42.794,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 81.333,
+          "y": 42.067,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 8,
+          "x": 88.569,
+          "y": 28.998,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 200,
+          "x": 87.416,
+          "y": 25.72,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 85.866,
+          "y": 28.892,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 83.595,
+          "y": 26.559,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 212,
+          "x": 85.513,
+          "y": 27.448,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 155,
+      "t": 5.1667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 65.684,
+          "y": 40.687,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 82.103,
+          "y": 49.59,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 87.355,
+          "y": 38.244,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 88.82,
+          "y": 43.853,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 80.924,
+          "y": 41.85,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 8,
+          "x": 90.296,
+          "y": 29.796,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 200,
+          "x": 87.645,
+          "y": 23.16,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 19,
+          "x": 84.465,
+          "y": 31.88,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 83.794,
+          "y": 26.672,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 221,
+          "x": 85.684,
+          "y": 26.39,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 160,
+      "t": 5.3333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 65.397,
+          "y": 40.609,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 81.877,
+          "y": 49.583,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 87.533,
+          "y": 38.517,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 88.771,
+          "y": 44.183,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 80.544,
+          "y": 41.048,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 8,
+          "x": 90.946,
+          "y": 30.444,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 84.471,
+          "y": 31.783,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 83.652,
+          "y": 27.18,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 221,
+          "x": 85.826,
+          "y": 27.708,
+          "teamId": "team_1"
+        }
+      ]
+    },
+    {
+      "frameIndex": 165,
+      "t": 5.5,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 64.621,
+          "y": 39.454,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 81.356,
+          "y": 49.514,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 87.696,
+          "y": 38.593,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 89.031,
+          "y": 44.595,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 80.328,
+          "y": 40.324,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 8,
+          "x": 90.763,
+          "y": 29.058,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 84.078,
+          "y": 30.874,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 83.529,
+          "y": 26.926,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 221,
+          "x": 86.633,
+          "y": 28.261,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 200,
+          "x": 87.0,
+          "y": 24.195,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 170,
+      "t": 5.6667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 63.575,
+          "y": 38.747,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 80.172,
+          "y": 49.467,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 87.733,
+          "y": 38.842,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 88.565,
+          "y": 45.871,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 79.682,
+          "y": 40.208,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 8,
+          "x": 90.753,
+          "y": 29.009,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 82.726,
+          "y": 31.412,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 84.641,
+          "y": 24.899,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 221,
+          "x": 87.038,
+          "y": 27.402,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 200,
+          "x": 86.826,
+          "y": 24.245,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 175,
+      "t": 5.8333,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 62.942,
+          "y": 38.94,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 78.702,
+          "y": 49.036,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 87.664,
+          "y": 38.958,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 88.12,
+          "y": 45.902,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 78.664,
+          "y": 39.819,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 8,
+          "x": 90.68,
+          "y": 29.341,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 81.864,
+          "y": 31.116,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 85.023,
+          "y": 24.029,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 221,
+          "x": 88.839,
+          "y": 24.55,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 200,
+          "x": 86.539,
+          "y": 24.871,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 180,
+      "t": 6.0,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 62.582,
+          "y": 38.083,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 87.66,
+          "y": 38.668,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 87.579,
+          "y": 45.425,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 78.108,
+          "y": 38.92,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 8,
+          "x": 90.937,
+          "y": 29.001,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 80.675,
+          "y": 28.589,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 84.01,
+          "y": 26.621,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 221,
+          "x": 89.156,
+          "y": 24.04,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 200,
+          "x": 86.308,
+          "y": 25.579,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 77.792,
+          "y": 47.281,
+          "teamId": "team_0"
+        }
+      ]
+    },
+    {
+      "frameIndex": 185,
+      "t": 6.1667,
+      "players": [
+        {
+          "trackId": 1,
+          "x": 61.326,
+          "y": 36.955,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 3,
+          "x": 87.566,
+          "y": 38.678,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 6,
+          "x": 87.044,
+          "y": 45.226,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 108,
+          "x": 77.074,
+          "y": 38.894,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 8,
+          "x": 90.934,
+          "y": 28.593,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 19,
+          "x": 78.385,
+          "y": 30.066,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 88,
+          "x": 83.933,
+          "y": 26.64,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 221,
+          "x": 88.251,
+          "y": 26.741,
+          "teamId": "team_1"
+        },
+        {
+          "trackId": 200,
+          "x": 86.039,
+          "y": 25.507,
+          "teamId": "team_0"
+        },
+        {
+          "trackId": 4,
+          "x": 75.55,
+          "y": 46.063,
+          "teamId": "team_0"
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "processedFrames": 189,
+    "sampleStride": 5,
+    "detectionRecords": 2096,
+    "shotEvents": 1,
+    "shotsEmitted": 1,
+    "elapsedSeconds": 25.25,
+    "teamNamesAvailable": 30
+  },
+  "courtImageUrl": "/demo/court.png",
+  "court": {
+    "imageUrl": "/demo/court.png",
+    "widthPx": 1980,
+    "heightPx": 1100,
+    "scale": 20,
+    "padding": 50,
+    "courtLengthFt": 94.0,
+    "courtWidthFt": 50.0
+  },
+  "annotatedVideoUrl": "/demo/annotated.mp4"
+}
