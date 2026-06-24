@@ -1,0 +1,36 @@
+# Project-local BoT-SORT config for basketball broadcast clips.
+# Based on the Ultralytics stock botsort.yaml, with two goals:
+#   1. Turn on appearance ReID so a player who is briefly occluded in traffic (a drive
+#      into the paint, a shot in a scrum) is RE-IDENTIFIED as the same track instead of
+#      being given a brand-new id. `model: auto` reuses the detector's own features, so
+#      there is no extra model to download and (on ultralytics 8.4.x) no extra model load.
+#   2. Make it harder to spawn spurious new tracks (new_track_thresh) and keep lost tracks
+#      alive longer (track_buffer) so the same player stays one id across a whole play.
+# Net effect: far fewer track-id fragments, which is what lets a player's team vote and
+# shot attribution stay attached to one identity.
+
+tracker_type: botsort
+
+# Association thresholds.
+track_high_thresh: 0.25
+track_low_thresh: 0.1
+new_track_thresh: 0.25    # KEEP at stock. This call also tracks the BALL and RIM; raising
+                          # this drops their low-confidence detections from the tracked
+                          # output and breaks shot detection.
+track_buffer: 60          # was 30 — keep a lost track alive ~2s so it can re-attach after a
+                          # short occlusion instead of spawning a new id. Safe: never drops
+                          # detections, only extends the re-association window.
+match_thresh: 0.8
+fuse_score: True
+
+# BoT-SORT specifics.
+gmc_method: sparseOptFlow # global motion compensation for the moving broadcast camera.
+
+# Appearance ReID — left OFF: on this 6-class detector the native ('auto') features are too
+# weak to discriminate players and empirically INCREASED id fragmentation on broadcast
+# clips. Team correctness is instead handled by the colour classifier, which labels even a
+# re-id'd fragment by its actual jersey colour.
+proximity_thresh: 0.5
+appearance_thresh: 0.8
+with_reid: False
+model: auto

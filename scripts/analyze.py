@@ -136,6 +136,20 @@ def reencode_annotated(raw_path: Path, h264_path: Path) -> bool:
     return False
 
 
+# Deterministic majority vote over a list of team ids (0/1). On a tie, prefer the
+# lower team id so the same clip always resolves to the same answer run-to-run —
+# Python's set/dict iteration order is not guaranteed, so `max(set(...), key=count)`
+# could silently flip ties between runs.
+def majority_team(votes: list[int]) -> int:
+    if not votes:
+        return 0
+    counts: dict[int, int] = {}
+    for v in votes:
+        counts[v] = counts.get(v, 0) + 1
+    most = max(counts.values())
+    return min(k for k, c in counts.items() if c == most)
+
+
 # ── Main pipeline ─────────────────────────────────────────────────────────────
 
 # Orchestrate the whole analysis run from CLI args through to the JSON payload.
@@ -187,6 +201,7 @@ def main() -> int:
             player_detection,
             shot_detection,
             team_classification,
+            team_color,
         )
     except ImportError as exc:
         return emit_error(
@@ -233,26 +248,32 @@ def main() -> int:
             f"Only {len(fit_crops)} player crops collected — not enough to fit the team classifier. "
             "Check that the player model is firing on this clip.",
         )
-    anchored_classifier = team_classification.fit_anchored(fit_crops)
+    # Separate the two teams by the jersey colours actually seen in THIS clip (robust to
+    # jersey edition / white variants), not a per-team colour DB or greyscale brightness.
+    anchored_classifier = team_color.fit_color_anchored(fit_crops)
+    team_palette_hex = anchored_classifier.team_hex
     log(
-        f"[team] fitted on {len(fit_crops)} crops; "
-        f"{'swapped' if anchored_classifier.swap else 'kept'} cluster mapping (darker → team_0)."
+        f"[team] fitted on {len(fit_crops)} crops; team_0={team_palette_hex[0]} "
+        f"team_1={team_palette_hex[1]} (darker jersey → team_0)."
     )
 
     # ── Per-frame accumulators ───────────────────────────────────────────────
     per_track_points: dict[int, list[tuple[float, float]]] = {}   # track_id → court coords seen
-    per_track_teams: dict[int, list[int]] = {}                    # track_id → list of team votes
     per_frame_samples: list[tuple[int, dict[int, dict[str, Any]]]] = []  # for GUI dot animation
     detection_records: list[dict[str, Any]] = []                  # for shot_detection
     homography_by_frame: dict[int, Any] = {}                      # for shot projection
 
-    # Team classification per track is a *majority vote over the first N frames* a track
-    # is seen. First-seen wins is too brittle — a single noisy crop (mid-jump, occluded,
-    # blurred) gets locked in for the track's entire life. With a small voting window we
-    # let bad single crops get out-voted and the track settles on the right team.
-    TRACK_TEAM_LOCK_AFTER = 5
-    track_team_votes: dict[int, list[int]] = {}  # track_id → most recent team predictions
-    track_team_cache: dict[int, int] = {}        # track_id → locked-in team (mode of votes)
+    # Team classification per track is a majority vote over the track's *whole lifetime*,
+    # never an early-locked guess. Reading a jersey from any single frame is unreliable
+    # (mid-jump, ball over the torso, motion blur, players overlapping), so locking after
+    # the first few frames gambles the track's permanent team on a tiny, often-unlucky
+    # sample — and once wrong it can never recover. Instead we keep re-reading the jersey
+    # across the clip and let the many frames out-vote the bad ones. To bound classifier
+    # cost we re-classify each track at most once every TEAM_VOTE_STRIDE frames rather than
+    # every single frame.
+    TEAM_VOTE_STRIDE = 3
+    track_team_votes: dict[int, list[int]] = {}  # track_id → every team prediction so far
+    track_last_voted: dict[int, int] = {}        # track_id → last frame we classified it
 
     # ── Annotated video writer (raw mp4v; re-encoded to H.264 after the loop) ─
     annotated_raw_path = out_path.with_suffix("").parent / f"{out_path.stem}-annotated.raw.mp4"
@@ -264,7 +285,10 @@ def main() -> int:
         fps,
         (src_width, src_height),
     )
-    # Set up the box annotator with the two-team colour palette.
+    # Set up the box annotator with the fixed two-team display palette (blue / orange).
+    # NOTE: team separation is still done by observed jersey colour (anchored_classifier);
+    # this palette only controls how the two buckets are *drawn*. team_0 (darker jersey) is
+    # blue, team_1 (lighter jersey) is orange.
     box_palette = sv.ColorPalette([sv.Color.from_hex(c) for c in TEAM_PALETTE_HEX])
     box_annotator = sv.BoxAnnotator(color=box_palette, thickness=3, color_lookup=sv.ColorLookup.INDEX)
 
@@ -303,11 +327,13 @@ def main() -> int:
             if len(players) > 0 and players.tracker_id is not None and transformer is not None:
                 court_xy = court_mapping.project_players_to_court(transformer, players)
 
-                # Team prediction: build a voting window for each track until it locks in.
-                # Tracks with TRACK_TEAM_LOCK_AFTER or more votes are not re-predicted.
+                # Team prediction: keep voting across the track's whole life — never lock.
+                # A track is re-classified once every TEAM_VOTE_STRIDE frames, so a bad
+                # early read can always be out-voted by the clearer frames that follow.
                 voting_indices = [
                     i for i, tid in enumerate(players.tracker_id)
-                    if tid is not None and int(tid) not in track_team_cache
+                    if tid is not None
+                    and frame_index - track_last_voted.get(int(tid), -10_000) >= TEAM_VOTE_STRIDE
                 ]
                 if voting_indices:
                     voting_crops = [
@@ -321,22 +347,12 @@ def main() -> int:
                     for idx, team in zip(voting_indices, voting_teams):
                         key = int(players.tracker_id[idx])
                         track_team_votes.setdefault(key, []).append(team)
-                        # Once we have enough votes, lock in the mode and stop re-classifying.
-                        if len(track_team_votes[key]) >= TRACK_TEAM_LOCK_AFTER:
-                            votes = track_team_votes[key]
-                            track_team_cache[key] = max(set(votes), key=votes.count)
+                        track_last_voted[key] = frame_index
 
-                # Return the best-known team for a track using cached or running votes.
+                # Best-known team for a track right now: the running majority of every
+                # jersey read so far (deterministic tie-break), or 0 if not yet seen.
                 def _current_team(track_id: int) -> int:
-                    """Best-known team for a track right now.
-                    Use the locked-in mode if available; otherwise the running mode of
-                    the votes collected so far (or 0 if no votes yet)."""
-                    if track_id in track_team_cache:
-                        return track_team_cache[track_id]
-                    votes = track_team_votes.get(track_id, [])
-                    if not votes:
-                        return 0
-                    return max(set(votes), key=votes.count)
+                    return majority_team(track_team_votes.get(track_id, []))
 
                 frame_sample: dict[int, dict[str, Any]] = {}
                 for tid, (x, y) in zip(players.tracker_id, court_xy):
@@ -345,7 +361,6 @@ def main() -> int:
                     key = int(tid)
                     team = _current_team(key)
                     per_track_points.setdefault(key, []).append((float(x), float(y)))
-                    per_track_teams.setdefault(key, []).append(team)
                     frame_sample[key] = {"xy": (float(x), float(y)), "team": team}
 
                 if frame_index % SAMPLE_STRIDE == 0:
@@ -386,15 +401,14 @@ def main() -> int:
     shot_events = shot_detection.detect_shots(detection_records, frame_count=max(1, frame_index))
     log(f"[shots] detected {len(shot_events)} shot event(s)")
 
-    # ── Per-track dominant team (mode across all observations) ───────────────
-    # Return the most common value in a list of team votes.
-    def _mode(values: list[int]) -> int:
-        counts: dict[int, int] = {}
-        for v in values:
-            counts[v] = counts.get(v, 0) + 1
-        return max(counts, key=lambda k: counts[k]) if counts else 0
-
-    track_team: dict[int, int] = {tid: _mode(votes) for tid, votes in per_track_teams.items()}
+    # ── Per-track team: majority over every jersey read across the track's life ──
+    # This is the single source of truth used everywhere downstream — the annotated-video
+    # box colour, the court dots, the roster, and (critically) the shot's team — so the
+    # box and the points can never disagree. Computed from the raw per-frame predictions
+    # (track_team_votes), not a running history, with a deterministic tie-break.
+    track_team: dict[int, int] = {
+        tid: majority_team(votes) for tid, votes in track_team_votes.items()
+    }
 
     # ── Map shot events into the GUI's Shot shape ────────────────────────────
     # Find a homography from a frame near the given index, scanning outward if needed.
@@ -425,51 +439,45 @@ def main() -> int:
             continue
         court_x, court_y = court_mapping.project_point_to_court(transformer, (sx, sy))
 
-        # Attribute the shot to the SAME team that colours the shooter's tracker box and
-        # court dot — i.e. the shooter track's per-track voted team (`track_team`). This
-        # guarantees the shot's team matches what the user sees on the tracker. A single
-        # jersey crop at the release frame is too noisy to trust as an override (shooter
-        # mid-jump, ball over the torso, motion blur), so we only fall back to a
-        # multi-frame jersey vote when the shooter track has no team at all.
+        # Attribute the shot to the SAME team as the shooter track's whole-clip vote
+        # (`track_team`) — the exact value that colours that track's box and court dot.
+        # This is the single source of truth, so the box colour and the points can never
+        # disagree. We do NOT re-classify the jersey at the release frame: that is the
+        # worst possible moment to read it (shooter mid-jump, ball over the torso, motion
+        # blur) and a second independent guess is exactly what produced the old
+        # "blue box, orange points" split.
         shooter_tid = int(ev["shooter_track_id"]) if ev.get("shooter_track_id") is not None else None
 
         if shooter_tid is not None and shooter_tid in track_team:
             team_idx = track_team[shooter_tid]
         else:
-            # Edge case: shot detection named a shooter the main loop never projected, so
-            # there is no tracker team to match. Vote the shooter's jersey across the few
-            # frames near release where they were detected.
+            # Genuine edge case: shot detection named a shooter that never got a single
+            # in-loop jersey read (e.g. court homography was missing on every frame the
+            # track appeared, so it was never classified). Re-read THAT shooter's own
+            # jersey across *all* the frames it was detected and majority-vote — never one
+            # release crop, never a neighbouring player. Spread the samples to bound cost.
             samples: list[tuple[int, Any]] = []
             if shooter_tid is not None:
-                rel = int(ev["release_frame"])
-                lookback = shot_detection.SHOOTER_LOOKBACK_FRAMES
                 for rec in detection_records:
                     if (
                         rec.get("track_id") == shooter_tid
                         and rec.get("class_id") == player_detection.CLASS_PLAYER
-                        and rel - lookback <= rec.get("frame", -1) <= rel
                     ):
                         samples.append((int(rec["frame"]), rec["bbox_xyxy"]))
-                        if len(samples) >= 5:
-                            break
+            if len(samples) > 15:
+                step = max(1, len(samples) // 15)
+                samples = samples[::step][:15]
             if not samples and ev.get("shooter_bbox_xyxy") is not None:
                 samples = [(int(ev["release_frame"]), ev["shooter_bbox_xyxy"])]
 
             fallback_team = team_classification.predict_team_multi_frame(
                 anchored_classifier, str(video_path), samples
             )
-            if fallback_team is not None:
-                team_idx = fallback_team
-                log(
-                    f"[shots] shot #{ev['shot_id']}: shooter track {shooter_tid} not in "
-                    f"tracker teams — multi-frame jersey vote → team_{team_idx}"
-                )
-            else:
-                team_idx = 0
-                log(
-                    f"[shots] shot #{ev['shot_id']}: shooter track {shooter_tid} has no team "
-                    f"and jersey vote failed — defaulting to team_0"
-                )
+            team_idx = fallback_team if fallback_team is not None else 0
+            log(
+                f"[shots] shot #{ev['shot_id']}: shooter track {shooter_tid} had no in-loop "
+                f"team — aggregated {len(samples)} jersey crop(s) → team_{team_idx}"
+            )
 
         _, dist_ft = geometry.nearest_basket(court_x, court_y)
         shots_out.append({

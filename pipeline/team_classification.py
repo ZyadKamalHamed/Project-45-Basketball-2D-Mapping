@@ -25,6 +25,8 @@ import cv2
 import numpy as np
 import supervision as sv
 import torch  # type: ignore[import-not-found]
+import umap  # type: ignore[import-not-found]
+from sklearn.cluster import KMeans
 from sports.common.team import TeamClassifier  # type: ignore[import-not-found]
 
 
@@ -82,6 +84,12 @@ def fit_anchored(crops: Sequence[np.ndarray], device: str | None = None) -> Anch
     # Pick a device and fit the underlying TeamClassifier on the crops.
     dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
     clf = TeamClassifier(device=dev)
+    # Seed the dimensionality reducer and clusterer so the same clip produces the same two
+    # clusters and the same darker/brighter anchor on every run. The stock TeamClassifier
+    # leaves UMAP and KMeans unseeded, so otherwise the whole clip's team labels can invert
+    # (team_0 ↔ team_1) from one run to the next on identical input.
+    clf.reducer = umap.UMAP(n_components=3, random_state=42)
+    clf.cluster_model = KMeans(n_clusters=2, random_state=42, n_init=10)
     clf.fit(list(crops))
 
     # Look at which cluster the fit crops landed in, group them, and compute mean
@@ -170,8 +178,11 @@ def predict_team_multi_frame(
     votes = anchored.predict(crops)
     if not votes:
         return None
-    # Majority vote across the sampled frames.
-    return max(set(votes), key=votes.count)
+    # Majority vote across the sampled frames. Tie-break deterministically toward the
+    # lower team id so the same clip always resolves the same way run-to-run.
+    counts = {t: votes.count(t) for t in set(votes)}
+    most = max(counts.values())
+    return min(t for t, c in counts.items() if c == most)
 
 
 # Re-read a shooter's team straight from their jersey at the release frame.

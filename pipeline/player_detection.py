@@ -16,11 +16,19 @@ Notebook cell references:
 from __future__ import annotations
 
 # Imports for typing, arrays, detection handling, and the YOLO model.
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import supervision as sv
 from ultralytics import YOLO  # type: ignore[import-not-found]
+
+
+# Project-local tracker config (BoT-SORT + ReID + anti-fragmentation tuning). Falls back
+# to the Ultralytics stock "botsort.yaml" if the file is missing, so the module still runs
+# on a fresh checkout that hasn't synced configs/.
+_CUSTOM_TRACKER = Path(__file__).resolve().parent.parent / "configs" / "custom_botsort.yaml"
+DEFAULT_TRACKER = str(_CUSTOM_TRACKER) if _CUSTOM_TRACKER.exists() else "botsort.yaml"
 
 
 # Class IDs from Abdo's model. Centralised here so the bridge and shot_detection
@@ -54,7 +62,7 @@ def track_frame(
     *,
     conf: float = 0.25,
     iou: float = 0.5,
-    tracker: str = "botsort.yaml",
+    tracker: str = DEFAULT_TRACKER,
 ) -> sv.Detections:
     """Run player detection + BoT-SORT tracking on one frame.
 
