@@ -2,7 +2,7 @@
 .python-version
 venv/
 .DS_Store
-
+venv
 # Python build artefacts
 __pycache__/
 *.pyc

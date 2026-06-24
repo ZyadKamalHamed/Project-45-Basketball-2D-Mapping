@@ -128,6 +128,52 @@ def collect_fit_crops(
     return crops
 
 
+# Re-read a shooter's team from their jersey across several frames and majority-vote.
+def predict_team_multi_frame(
+    anchored: AnchoredTeamClassifier,
+    video_path: str,
+    samples: Sequence[tuple[int, Sequence[float]]],
+    *,
+    crop_factor: float = JERSEY_CROP_FACTOR,
+) -> int | None:
+    """Classify the shooter's team from several (frame_index, bbox) samples and majority-vote.
+
+    A single crop at the release frame is the worst moment to read a jersey (shooter
+    mid-jump, ball occluding the torso, motion blur). Voting across a few frames where
+    the shooter is visible is far more stable. The video is opened once and seeked per
+    sample. Returns the majority anchored team id (0 or 1), or None when no usable crop
+    could be taken from any sample.
+    """
+    if not samples:
+        return None
+
+    capture = cv2.VideoCapture(str(video_path))
+    try:
+        crops: list[np.ndarray] = []
+        for frame_index, bbox in samples:
+            if bbox is None:
+                continue
+            capture.set(cv2.CAP_PROP_POS_FRAMES, int(frame_index))
+            ok, frame = capture.read()
+            if not ok or frame is None:
+                continue
+            crop_box = sv.scale_boxes(xyxy=np.array([bbox], dtype=float), factor=crop_factor)[0]
+            crop = sv.crop_image(frame, crop_box)
+            if crop is None or crop.size == 0:
+                continue
+            crops.append(crop)
+    finally:
+        capture.release()
+
+    if not crops:
+        return None
+    votes = anchored.predict(crops)
+    if not votes:
+        return None
+    # Majority vote across the sampled frames.
+    return max(set(votes), key=votes.count)
+
+
 # Re-read a shooter's team straight from their jersey at the release frame.
 def predict_at_release_frame(
     anchored: AnchoredTeamClassifier,
@@ -139,25 +185,12 @@ def predict_at_release_frame(
 ) -> int | None:
     """Re-classify the shooter team directly from their jersey at the release frame.
 
-    Used by the bridge to override the cached per-track team vote when BoT-SORT has
-    shuffled track identities during a play. Returns the anchored team id (0 or 1)
-    or None when the crop can't be obtained.
+    Thin wrapper over `predict_team_multi_frame` with a single sample, kept for callers
+    that only have the release-frame crop. Returns the anchored team id (0 or 1) or None
+    when the crop can't be obtained.
     """
     if shooter_bbox is None:
         return None
-    # Seek to the release frame and grab that single frame.
-    capture = cv2.VideoCapture(str(video_path))
-    try:
-        capture.set(cv2.CAP_PROP_POS_FRAMES, int(release_frame))
-        ok, frame = capture.read()
-    finally:
-        capture.release()
-    if not ok or frame is None:
-        return None
-
-    # Tighten the box to the torso, crop it, and classify the jersey.
-    crop_box = sv.scale_boxes(xyxy=np.array([shooter_bbox], dtype=float), factor=crop_factor)[0]
-    crop = sv.crop_image(frame, crop_box)
-    if crop is None or crop.size == 0:
-        return None
-    return anchored.predict([crop])[0]
+    return predict_team_multi_frame(
+        anchored, video_path, [(int(release_frame), shooter_bbox)], crop_factor=crop_factor
+    )
